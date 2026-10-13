@@ -1,0 +1,12 @@
+{
+  "manifest": {
+    "schemaVersion": "spike-v0",
+    "runtimeVersion": "spike-v0",
+    "entryPoint": "Profile.tsx"
+  },
+  "files": {
+    "Profile.tsx": "export default function Profile({ data }) {\n  return (\n    <main className=\"profile\">\n      <header><p className=\"eyebrow\">OURSPACE</p><h1>{data.displayName}</h1></header>\n      <section className=\"card\"><h2>About me</h2><p>{data.bio}</p></section>\n      <footer>Made with OurSpace</footer>\n    </main>\n  );\n}",
+    "styles.css": ".profile { color: #e8e8f5; background: #19152d; min-height: 100vh; padding: 32px; font-family: sans-serif; }\n.eyebrow { color: #c4b5fd; letter-spacing: 3px; }\nh1 { font-size: 48px; }\n.card { padding: 24px; border-radius: 16px; background: #30284a; }\nfooter { margin-top: 24px; }"
+  }
+}
+

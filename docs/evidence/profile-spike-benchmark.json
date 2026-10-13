@@ -1,0 +1,34 @@
+{
+  "measuredAt": "2026-10-13T06:00:02.297Z",
+  "node": "v24.11.1",
+  "cpu": "AMD Ryzen 7 5700U with Radeon Graphics         ",
+  "logicalCpus": 16,
+  "memoryGiB": 15.3,
+  "fixtureSourceBytes": 309,
+  "coldSharedRuntimeBuildMs": 116.412,
+  "warmValidation": {
+    "samples": 30,
+    "medianMs": 1.078,
+    "p95Ms": 1.466
+  },
+  "sharedArtifactAssemblyIncludingValidation": {
+    "samples": 30,
+    "medianMs": 1.799,
+    "p95Ms": 2.383
+  },
+  "profileSpecificTrustedBundle": {
+    "samples": 30,
+    "medianMs": 74.2,
+    "p95Ms": 78.429
+  },
+  "sharedRuntimeBytes": 222994,
+  "sharedRuntimeGzipBytes": 69188,
+  "perProfileJsonAndCssBytes": 1042,
+  "profileSpecificBundleBytes": 223562,
+  "limitations": [
+    "Single tiny fixture; 5 warmups, 30 sequential samples; no production throughput claim.",
+    "No AI calls, type-checking of arbitrary programs, semantic evaluation, queueing, isolated-worker startup or CDN measurements.",
+    "Shared runtime is embedded in test HTML for CSP simplicity; external immutable delivery/cache is not implemented.",
+    "Profile-specific comparison bundles trusted renderer plus validated JSON; it does not measure unrestricted user React compilation."
+  ]
+}

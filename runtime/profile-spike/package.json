@@ -1,0 +1,27 @@
+{
+  "name": "@ourspace/profile-spike",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "test": "node --test test/policy.test.mjs",
+    "test:browser": "node --test test/browser.test.mjs",
+    "benchmark": "node benchmark.mjs",
+    "build": "node build.mjs",
+    "preview": "node serve.mjs"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "postcss": "8.5.30",
+    "postcss-value-parser": "4.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "6.0.3"
+  },
+  "devDependencies": {
+    "playwright": "1.64.0"
+  }
+}

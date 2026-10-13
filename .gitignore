@@ -1,0 +1,4 @@
+node_modules/
+runtime/profile-spike/artifacts/
+runtime/profile-spike/test-results/
+

@@ -2,7 +2,7 @@
 
 ## Titlu de lucru
 
-**OurSpace AI: platforma social media creativa pentru generarea, validarea si publicarea de profiluri web personalizabile**
+**OurSpace AI: platforma sociala completa cu prietenii, feed, mesagerie privata si profiluri web personalizabile asistate de AI**
 
 ## 1. Logica de business si motivatia proiectului
 
@@ -17,6 +17,8 @@ Din perspectiva academica, proiectul reuneste trei directii aplicate:
 - arhitectura software si DevOps pentru servicii independente, observabilitate si scalare.
 
 Rezultatul urmarit este un prototip functional si evaluabil, nu o platforma comerciala completa. Extinderea cerintelor poate fi facuta dupa rezultate experimentale si cercetare suplimentara.
+
+Platforma finala include obligatoriu relatii de prietenie, postari si feed, precum si mesagerie privata. Fluxul de generare/publicare a profilurilor este primul milestone tehnic, nu intregul produs. Aceste capabilitati sociale vor avea servicii separate, fiecare modular intern si pregatit pentru integrare prin API-uri si evenimente versionate.
 
 ## 2. Obiective generale
 
@@ -43,13 +45,18 @@ Rezultatul urmarit este un prototip functional si evaluabil, nu o platforma come
 - [ ] Publicare controlata a profilului.
 - [ ] Docker, pipeline CI/CD, logare si monitorizare de baza.
 
+- [ ] Cereri de prietenie, acceptare, eliminare si blocarea utilizatorilor.
+- [ ] Postari cu audienta explicita si feed paginat, cu verificarea accesului curent.
+- [ ] Mesagerie privata directa, istoric persistent si livrare autentificata in timp real.
+- [ ] Servicii separate pentru social graph, continut, feed si mesagerie; integrare fiabila si autorizata.
+
 ### 3.2 Directii optionale, conditionate de cercetare
 
 - [ ] Sistem multi-agent specializat.
 - [ ] Model predictiv pentru succesul unui profil.
 - [ ] Clasificator ML pentru riscul codului generat.
 - [ ] Autorepair pentru probleme de securitate cu verificare ulterioara.
-- [ ] Mesagerie cu criptare end-to-end.
+- [ ] Criptare end-to-end pentru mesageria privata obligatorie; criptarea avansata este extensia optionala, nu mesageria in sine.
 - [ ] Semnatura digitala RSA pentru artefactele publicate.
 - [ ] Orchestrare Kubernetes intr-un mediu local sau cloud.
 
@@ -89,6 +96,10 @@ Aceste directii nu trebuie sa blocheze MVP-ul. Fiecare se introduce numai dupa d
 - [ ] Implementarea serviciului de proiecte, versiuni si publicare.
 - [ ] Implementarea serviciului de generare AI si a cozii de joburi.
 - [ ] Implementarea serviciului de validare si scanare.
+- [ ] Implementarea serviciilor separate social graph, continut, feed si mesagerie privata.
+- [ ] Separarea interna domain/application/infrastructure/API in fiecare serviciu si definirea contractelor de comunicare.
+- [ ] Integrare prin API-uri autentificate si evenimente versionate, outbox/inbox, deduplicare, retry limitat si reconciliere.
+- [ ] Date detinute de serviciul responsabil; fara acces SQL direct intre servicii.
 - [ ] Definirea contractelor API, a schemei de erori si a politicilor de retry.
 - [ ] Aplicarea validarii inputului, rate limiting si politici de timeout.
 - [ ] Implementarea auditului pentru actiuni sensibile.
@@ -111,6 +122,7 @@ Aceste directii nu trebuie sa blocheze MVP-ul. Fiecare se introduce numai dupa d
 - [ ] Afisarea etapelor de generare, compilare, validare si corectie.
 - [ ] Afisarea scorului semantic si a explicatiilor pentru probleme.
 - [ ] Implementarea istoricului de versiuni si a actiunilor de rollback.
+- [ ] Fluxuri UI pentru prieteni, postari/feed si conversatii private, in aplicatia de incredere, separat de codul generat.
 - [ ] Izolarea previzualizarii pentru a preveni executarea continutului neautorizat.
 - [ ] Implementarea designului responsive si a starilor de incarcare si eroare.
 - [ ] Verificarea accesibilitatii si a utilizabilitatii printr-un set de scenarii.
@@ -282,17 +294,21 @@ Aceste directii nu trebuie sa blocheze MVP-ul. Fiecare se introduce numai dupa d
 
 - [ ] Arhitectura, contracte API, modele de date si prototip UX.
 - [ ] Designul fluxului AI si al pipeline-ului DevOps.
+- [ ] Definirea runtime-ului controlat, a izolarii build/preview si a regulilor de publicare; validare printr-un spike tehnic.
 - [ ] Criteriu de iesire: proiect tehnic revizuit si decizii documentate.
 
 ### Faza 3: Implementarea MVP
 
 - [ ] Backend, frontend, baza de date, autentificare si profiluri.
-- [ ] Generare, validare, previzualizare si publicare controlata.
+- [ ] Primul milestone: cod manual -> versiune imuabila -> build izolat -> validare -> preview izolat -> publicare artefact -> rollback.
+- [ ] Generare AI si corectie limitata folosind acelasi flux verificat.
+- [ ] Milestone social: servicii social graph, continut, feed si mesagerie privata, integrate prin contracte versionate.
+- [ ] Verificarea blocarii, confidentialitatii, livrarii duplicate, intarzierii evenimentelor si caderii independente a serviciilor.
 - [ ] Criteriu de iesire: scenariile principale functioneaza intr-un mediu local.
 
 ### Faza 4: Securizare si automatizare
 
-- [ ] Sandbox, scanare, politici de acces, CI/CD si observabilitate.
+- [ ] Consolidarea sandbox-ului, scanarii si politicilor de acces implementate din primul milestone; extinderea CI/CD si observabilitatii.
 - [ ] Criteriu de iesire: nu exista vulnerabilitati critice cunoscute, iar pipeline-ul este reproductibil.
 
 ### Faza 5: Extensii de cercetare
@@ -338,5 +354,27 @@ Pentru fiecare propunere se va completa o fisa scurta:
 - [ ] Profilurile si datele utilizatorilor sunt protejate prin controale de securitate documentate.
 - [ ] Serviciile pot fi pornite reproductibil si sunt monitorizabile.
 - [ ] Exista teste pentru fluxurile critice si dovezi ale rezultatelor.
+- [ ] Utilizatorii pot gestiona prietenii, publica postari, consulta un feed autorizat si comunica prin mesagerie privata.
+- [ ] Serviciile sociale sunt modulare, independente si integrate fara partajarea directa a datelor; confidentialitatea rezista la proiectii intarziate si erori partiale.
 - [ ] Orice componenta ML sau multi-agent implementata este comparata cu un baseline.
 - [ ] Lucrarea explica limitarile, compromisurile si directiile de dezvoltare ulterioara.
+
+## 8. Baseline pentru implementare
+
+Documentele initiale de implementare sunt:
+
+- [Specificatia MVP](docs/MVP_SPECIFICATION.md)
+- [Decizii arhitecturale](docs/ARCHITECTURE_DECISIONS.md)
+- [Contracte de domeniu si API](docs/DOMAIN_AND_API_CONTRACTS.md)
+- [Ordinea implementarii](docs/IMPLEMENTATION_ROADMAP.md)
+- [Arhitectura platformei sociale si integrarea serviciilor](docs/SOCIAL_PLATFORM_ARCHITECTURE.md)
+
+Aceste documente definesc baseline-ul initial; deciziile deschise necesita dovezi tehnice. Izolarea codului nefiabil este obligatorie de la primul build si preview, nu o completare amanata pentru faza de securizare.
+
+## 9. Flexibilitate si evolutia capabilitatilor
+
+Structura proiectului va separa formatul de authoring, contractul arborelui de profil, politica de capabilitati, validarea, renderer-ul si asamblarea artefactelor. Subsetul JSX/CSS verificat in spike este o limita initiala, nu o lista definitiva de functionalitati si nu un sablon vizual obligatoriu.
+
+Contractele si politicile vor fi versionate explicit. Extinderea sau restrangerea capabilitatilor necesita dovezi relevante de securitate, performanta si compatibilitate, criterii de acceptanta si actualizarea documentatiei. Reviziile si artefactele existente raman imuabile; migrarile produc versiuni noi, iar revocarea de securitate poate bloca artefactele nesigure.
+
+Cerintele concrete de structurare, compatibilitate si evaluare sunt definite in [planul de implementare](docs/IMPLEMENTATION_ROADMAP.md#design-requirement-flexibility-as-capabilities-evolve) si in ADR-007.

@@ -1,0 +1,19 @@
+{
+  "node": "v24.11.1",
+  "platform": "win32",
+  "arch": "x64",
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "postcss": "8.5.30",
+    "postcss-value-parser": "4.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "6.0.3"
+  },
+  "devDependencies": {
+    "playwright": "1.64.0"
+  },
+  "lockfileSha256": "b8fe6930207f608ec224d9cc6bc1f42ad4ea664926a8e1ff125457949eeece63",
+  "policyTestsPassed": 31,
+  "browserTestsPassed": 1
+}

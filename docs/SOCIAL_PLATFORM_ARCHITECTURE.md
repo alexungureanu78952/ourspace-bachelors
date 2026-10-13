@@ -8,15 +8,15 @@ OurSpace is a complete social platform with customizable profiles, friendships, 
 
 ## Service ownership
 
-| Service | Authoritative data and responsibilities | Communication |
-|---|---|---|
-| Identity | Stable user IDs, authentication, account status and service credentials | Authenticated identity/status contracts; account lifecycle events |
-| Profiles | Public identity presentation, profile privacy, revisions, validation jobs and publication references | Profile/publishing queries; publication and visibility-change events |
-| Social graph | Friend requests, accepted friendships, removal and blocking | Relationship/interaction authorization queries; relationship-change events |
-| Content | Posts, author ownership, audience and deletion | Authorized post queries; post creation/change/deletion events |
-| Feed | Per-viewer timeline projections, ordering, cursors and rebuild checkpoints | Consumes graph/content/profile events; checks current visibility before returning content |
-| Messaging | Direct conversations, participant membership, messages, ordering, delivery/read cursors and connection authorization | Checks graph/account eligibility; participant-only APIs and authenticated real-time delivery |
-| Generation/validation worker | Bounded generation and artifact-processing attempts | Internal job claim/result contracts; no direct social-service data access |
+| Service                      | Authoritative data and responsibilities                                                                              | Communication                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Identity                     | Stable user IDs, authentication, account status and service credentials                                              | Authenticated identity/status contracts; account lifecycle events                            |
+| Profiles                     | Public identity presentation, profile privacy, revisions, validation jobs and publication references                 | Profile/publishing queries; publication and visibility-change events                         |
+| Social graph                 | Friend requests, accepted friendships, removal and blocking                                                          | Relationship/interaction authorization queries; relationship-change events                   |
+| Content                      | Posts, author ownership, audience and deletion                                                                       | Authorized post queries; post creation/change/deletion events                                |
+| Feed                         | Per-viewer timeline projections, ordering, cursors and rebuild checkpoints                                           | Consumes graph/content/profile events; checks current visibility before returning content    |
+| Messaging                    | Direct conversations, participant membership, messages, ordering, delivery/read cursors and connection authorization | Checks graph/account eligibility; participant-only APIs and authenticated real-time delivery |
+| Generation/validation worker | Bounded generation and artifact-processing attempts                                                                  | Internal job claim/result contracts; no direct social-service data access                    |
 
 Each social domain above is an independently deployable service boundary. One PostgreSQL host may support local development, but each service owns its database/schema, migrations and credentials. No cross-service SQL joins, foreign keys or direct table writes. Cross-service references use stable IDs; each owner defines deletion/tombstone semantics.
 
@@ -41,6 +41,7 @@ An event envelope contains eventId, eventType, schemaVersion, occurredAt, produc
 A service commits its state and outbox event in one local transaction. Publishers deliver at least once. Consumers use an inbox/deduplication record and apply their local change atomically. Acknowledge only after durable processing. Define ordering per aggregate, stale-version handling, bounded retries, dead-letter handling, replay and reconciliation. There is no assumed global transaction or exactly-once delivery.
 
 Candidate event families:
+
 - AccountStatusChanged / AccountDeletionRequested.
 - ProfilePublished / ProfileVisibilityChanged.
 - FriendRequestCreated / FriendshipEstablished / FriendshipRemoved / UserBlocked / UserUnblocked.

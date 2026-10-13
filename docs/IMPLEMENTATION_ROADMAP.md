@@ -44,7 +44,6 @@ Research may justify relaxing, extending or tightening restrictions. Flexibility
 - Verify that unsupported capabilities and unknown versions are rejected with actionable diagnostics.
 - Document which changes require a new policy version, schema version, runtime artifact or content migration.
 
-
 ## 0. Review the baseline
 
 Read MVP_SPECIFICATION.md, ARCHITECTURE_DECISIONS.md and DOMAIN_AND_API_CONTRACTS.md together. They narrow the original thesis plan into an executable first milestone. Open decisions are tracked explicitly; none should be interpreted as verified security controls.
@@ -58,6 +57,7 @@ Exit: the supported source surface, enforced limits and build/preview isolation 
 ## 2. Scaffold the deployable application
 
 Proposed monorepo:
+
 - apps/web: trusted Next.js interface.
 - services/profiles: .NET profile/revision/publication API; independently owned data.
 - services/identity: authentication and account lifecycle boundary.
@@ -106,11 +106,14 @@ Select optional research extensions only after the baseline is measured. Any req
 
 ## Immediate next coding task
 
-Finalize the first versioned profile-tree contract, authoring semantics and capability-policy boundaries described above. Then scaffold the authenticated manual-publication flow. Use the completed spike as evidence, extend it where needed, and keep arbitrary user-JavaScript execution disabled until a verified execution sandbox exists.
-
+The first runtime-v1 contract and modular implementation are now defined in [RUNTIME_V1_CONTRACT.md](RUNTIME_V1_CONTRACT.md). Next scaffold the profiles service and trusted application with authentication, persistence, durable validation jobs, private preview, publication and rollback. Follow the social-service contracts and outbox/inbox conventions from the start. Keep arbitrary user-JavaScript execution disabled until a verified execution sandbox exists.
 
 ## Runtime experiment results
 
 The [runtime spike](RUNTIME_SPIKE_REPORT.md) demonstrates a constrained layout rendered through a shared React runtime, with 31 policy tests and one browser integration test passing. Arbitrary-code server isolation is unverified and remains disabled.
 
-The next implementation work is to establish the first stable, versioned runtime-v1 schema and authoring semantics with the flexibility requirements above, then scaffold the authenticated manual-publication flow around it. Retain bounded ingestion workers and private preview authorization. Do not mark the arbitrary-code sandbox gate or the full manual-publication milestone complete based on this experiment.
+The spike informed the runtime-v1 baseline implemented below. The next work is the authenticated manual-publication flow, including bounded ingestion workers and private preview authorization. Neither the spike nor runtime-v1 completes the arbitrary-code sandbox gate or the full manual-publication milestone.
+
+## Runtime-v1 implementation baseline
+
+The runtime now separates typed schemas/policy, constrained JSX parsing, validation, React rendering and versioned artifact assembly. The sections capability demonstrates extension through those boundaries. Root quality checks enforce strict typing, module import rules, formatting, generated-schema consistency, security/contract fixtures, spike regression and browser/accessibility behavior. See [the contract](RUNTIME_V1_CONTRACT.md) for exact semantics and limits. This is not completion of the authenticated publication or social platform milestone.

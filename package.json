@@ -1,0 +1,44 @@
+{
+  "name": "ourspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "tsc && node .build/runtime/profile-v1/build.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "tsc && node --test .build/runtime/profile-v1/test/unit/*.test.js",
+    "test:browser": "tsc && node --test .build/runtime/profile-v1/test/browser/*.test.js",
+    "schemas:check": "tsc && node .build/runtime/profile-v1/export-schemas.js --check",
+    "check": "node scripts/check.mjs",
+    "preview": "tsc && node .build/runtime/profile-v1/preview.js",
+    "schemas:generate": "tsc && node .build/runtime/profile-v1/export-schemas.js"
+  },
+  "dependencies": {
+    "entities": "7.0.1",
+    "postcss": "8.5.30",
+    "postcss-value-parser": "4.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "esbuild": "0.28.2",
+    "eslint": "10.12.0",
+    "globals": "16.5.0",
+    "playwright": "1.64.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.2"
+  }
+}

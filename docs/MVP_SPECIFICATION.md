@@ -29,37 +29,37 @@ Resource ownership is checked server-side for every protected operation. Preview
 
 ## Functional requirements and acceptance evidence
 
-| ID | Requirement | Acceptance evidence |
-|---|---|---|
-| AUTH-01 | Authenticate creators and enforce ownership | Anonymous requests fail; creator B cannot read private resources or mutate creator A's resources |
-| REV-01 | Save immutable source revisions | Editing produces a new revision; old source remains unchanged |
-| JOB-01 | Build revisions asynchronously | Creation returns a job identifier; progress and final results are retrievable |
-| BUILD-01 | Compile only the supported runtime contract | Valid fixture builds; unsupported imports and malformed source fail with diagnostics |
-| ISO-01 | Isolate build and browser execution | Hostile fixtures cannot obtain platform secrets, contact prohibited network destinations or read the application session |
-| VAL-01 | Bind validation to exact build inputs | Changed source, runtime or policy requires a new evaluation |
-| PREVIEW-01 | Preview accepted builds privately | An authorized creator sees the selected artifact; another creator cannot request its private preview |
-| PUB-01 | Publish only eligible artifacts | Pending, failed, rejected and obsolete-policy builds are refused |
-| PUB-02 | Preserve publication during edits and failures | A failed build leaves the published artifact unchanged |
-| PUB-03 | Roll back to an eligible previous artifact | Publication points to the selected existing artifact without regenerating it |
-| AI-01 | Generate source through a provider adapter | Provider output is validated against the same source contract as manual edits |
-| AI-02 | Bound automatic corrections | Attempts, elapsed time, output size and cost budgets terminate the run with an explicit reason |
-| SEM-01 | Evaluate prompt coverage | A versioned rubric produces criterion results and an explanatory score for benchmark scenarios |
-| AUD-01 | Audit sensitive state changes | Publication, rollback and moderation record actor, target, time and correlation identifier |
-| OPS-01 | Run and diagnose the system reproducibly | Documented local startup, health checks, correlated logs and CI build/tests succeed |
+| ID         | Requirement                                    | Acceptance evidence                                                                                                      |
+| ---------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| AUTH-01    | Authenticate creators and enforce ownership    | Anonymous requests fail; creator B cannot read private resources or mutate creator A's resources                         |
+| REV-01     | Save immutable source revisions                | Editing produces a new revision; old source remains unchanged                                                            |
+| JOB-01     | Build revisions asynchronously                 | Creation returns a job identifier; progress and final results are retrievable                                            |
+| BUILD-01   | Compile only the supported runtime contract    | Valid fixture builds; unsupported imports and malformed source fail with diagnostics                                     |
+| ISO-01     | Isolate build and browser execution            | Hostile fixtures cannot obtain platform secrets, contact prohibited network destinations or read the application session |
+| VAL-01     | Bind validation to exact build inputs          | Changed source, runtime or policy requires a new evaluation                                                              |
+| PREVIEW-01 | Preview accepted builds privately              | An authorized creator sees the selected artifact; another creator cannot request its private preview                     |
+| PUB-01     | Publish only eligible artifacts                | Pending, failed, rejected and obsolete-policy builds are refused                                                         |
+| PUB-02     | Preserve publication during edits and failures | A failed build leaves the published artifact unchanged                                                                   |
+| PUB-03     | Roll back to an eligible previous artifact     | Publication points to the selected existing artifact without regenerating it                                             |
+| AI-01      | Generate source through a provider adapter     | Provider output is validated against the same source contract as manual edits                                            |
+| AI-02      | Bound automatic corrections                    | Attempts, elapsed time, output size and cost budgets terminate the run with an explicit reason                           |
+| SEM-01     | Evaluate prompt coverage                       | A versioned rubric produces criterion results and an explanatory score for benchmark scenarios                           |
+| AUD-01     | Audit sensitive state changes                  | Publication, rollback and moderation record actor, target, time and correlation identifier                               |
+| OPS-01     | Run and diagnose the system reproducibly       | Documented local startup, health checks, correlated logs and CI build/tests succeed                                      |
 
 Security checks and compilation gate publication. Semantic scoring is advisory initially: an LLM score does not establish security or correctness.
 
 ## Full social MVP acceptance
 
-| ID | Requirement | Acceptance evidence |
-|---|---|---|
-| GRAPH-01 | Request, accept and remove friendships | Only the intended recipient accepts; duplicate/concurrent requests have documented outcomes |
-| GRAPH-02 | Block users and enforce interaction restrictions | Blocking prevents new sends and unauthorized content access despite stale projections |
-| POST-01 | Create, list and delete owned audience-controlled posts | Ownership and current audience are enforced server-side |
-| FEED-01 | Read a paginated authorized feed | Eligible friend posts appear; removal, deletion and privacy changes cannot leak stale content |
-| MSG-01 | Create direct conversations and persist messages | Active accepted friends can exchange messages; nonparticipants cannot read history |
-| MSG-02 | Authenticate real-time delivery and reconnect | Membership and current send eligibility apply to subscriptions and sends; retry does not duplicate messages |
-| INT-01 | Integrate independently deployed services reliably | Outbox/inbox, replay, contract checks and outage scenarios preserve owned state and privacy |
+| ID       | Requirement                                             | Acceptance evidence                                                                                         |
+| -------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| GRAPH-01 | Request, accept and remove friendships                  | Only the intended recipient accepts; duplicate/concurrent requests have documented outcomes                 |
+| GRAPH-02 | Block users and enforce interaction restrictions        | Blocking prevents new sends and unauthorized content access despite stale projections                       |
+| POST-01  | Create, list and delete owned audience-controlled posts | Ownership and current audience are enforced server-side                                                     |
+| FEED-01  | Read a paginated authorized feed                        | Eligible friend posts appear; removal, deletion and privacy changes cannot leak stale content               |
+| MSG-01   | Create direct conversations and persist messages        | Active accepted friends can exchange messages; nonparticipants cannot read history                          |
+| MSG-02   | Authenticate real-time delivery and reconnect           | Membership and current send eligibility apply to subscriptions and sends; retry does not duplicate messages |
+| INT-01   | Integrate independently deployed services reliably      | Outbox/inbox, replay, contract checks and outage scenarios preserve owned state and privacy                 |
 
 The complete MVP gate includes these requirements, profile/AI requirements and operational acceptance. Completing the first milestone alone does not satisfy it. See [social service architecture](SOCIAL_PLATFORM_ARCHITECTURE.md) for ownership and privacy semantics.
 

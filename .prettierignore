@@ -1,0 +1,8 @@
+node_modules/
+.build/
+package-lock.json
+runtime/profile-spike/
+runtime/profile-v1/artifacts/
+docs/evidence/
+
+runtime/contracts/schemas/

@@ -29,11 +29,11 @@ The experimental contract is spike-v0. It is deliberately not named runtime-v1: 
 
 Node v24.11.1; Windows; AMD Ryzen 7 5700U; 16 logical CPUs; 15.3 GiB RAM. One 309-byte TSX fixture with distinct revision text, five warmups and 30 sequential samples. Browser checks completed before this benchmark run.
 
-| Operation | Median | p95 |
-|---|---:|---:|
-| Parse/validate source and profile data | 1.078 ms | 1.466 ms |
-| Assemble shared-runtime artifact, including validation | 1.799 ms | 2.383 ms |
-| Bundle a profile-specific trusted React renderer | 74.200 ms | 78.429 ms |
+| Operation                                              |    Median |       p95 |
+| ------------------------------------------------------ | --------: | --------: |
+| Parse/validate source and profile data                 |  1.078 ms |  1.466 ms |
+| Assemble shared-runtime artifact, including validation |  1.799 ms |  2.383 ms |
+| Bundle a profile-specific trusted React renderer       | 74.200 ms | 78.429 ms |
 
 Shared runtime build: 116.412 ms on the first build in the process; not a cold-machine/cache measurement.
 Shared runtime: 222,994 bytes, 69,188 bytes gzipped.

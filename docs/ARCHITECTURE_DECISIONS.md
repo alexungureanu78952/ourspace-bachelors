@@ -64,7 +64,6 @@ Consequence: more lifecycle logic, but controlled costs and recoverable work. Do
 
 Resolve the first five before declaring the manual publication milestone complete. Resolve remaining deployment and AI policies before their features are enabled.
 
-
 ## ADR-006: Proposed constrained layout artifact after runtime spike
 
 Status: provisional direction, supported by the local spike; runtime-v1 is not frozen.
@@ -74,7 +73,6 @@ The [runtime spike report](RUNTIME_SPIKE_REPORT.md) records a supported declarat
 For the constrained path, replace arbitrary-program compilation with source-policy parsing, typed layout-schema validation and trusted artifact assembly. Keep CSS validation and isolated browser rendering. Do not assume source imports, hooks, loops or event handlers are supported. Unrestricted React remains disabled until a verified execution sandbox exists.
 
 This qualifies ADR-001's code-generation surface: React describes the rendering technology, while the default user capability is a declarative subset. It does not supersede ADR-004's requirements for any future executable-code path. The spike's localhost origins, local parser limits and embedded runtime are experimental; see its remaining gates before treating this as a production runtime.
-
 
 ## ADR-007: Evolve profile capabilities through explicit versioned boundaries
 

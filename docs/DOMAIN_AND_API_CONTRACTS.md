@@ -11,16 +11,16 @@ Use stable user/profile IDs across contracts. Model friend requests, accepted fr
 
 ## Records and invariants
 
-| Record | Required fields and ownership |
-|---|---|
-| Profile | id, ownerId, slug, displayName, createdAt; profiles module |
-| Revision | id, profileId, parentRevisionId?, sourceBundle, sourceDigest, origin(manual/ai/repair), createdBy, createdAt; revisions module |
-| BuildJob | id, revisionId, status, runtimeVersion, policyVersion, attemptCount, leaseToken?, leaseExpiresAt?, cancellationRequested, createdAt; jobs module |
-| BuildAttempt | id, jobId, attemptNumber, toolchain/image digest, timestamps, outcome, diagnostics, resource usage; jobs module |
-| Artifact | id, revisionId, successfulBuildAttemptId, sourceDigest, runtimeVersion, policyVersion, dependencyLockDigest, artifactDigest, storageKey, createdAt; publication module |
-| ValidationReport | id, buildAttemptId, status, policyVersion, diagnostics, semanticEvaluation?; validation module |
-| Publication | profileId, artifactId?, version, updatedAt; publication module |
-| AuditEvent | id, actorId, action, resourceId, previousArtifactId?, newArtifactId?, correlationId, timestamp; audit module |
+| Record           | Required fields and ownership                                                                                                                                          |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile          | id, ownerId, slug, displayName, createdAt; profiles module                                                                                                             |
+| Revision         | id, profileId, parentRevisionId?, sourceBundle, sourceDigest, origin(manual/ai/repair), createdBy, createdAt; revisions module                                         |
+| BuildJob         | id, revisionId, status, runtimeVersion, policyVersion, attemptCount, leaseToken?, leaseExpiresAt?, cancellationRequested, createdAt; jobs module                       |
+| BuildAttempt     | id, jobId, attemptNumber, toolchain/image digest, timestamps, outcome, diagnostics, resource usage; jobs module                                                        |
+| Artifact         | id, revisionId, successfulBuildAttemptId, sourceDigest, runtimeVersion, policyVersion, dependencyLockDigest, artifactDigest, storageKey, createdAt; publication module |
+| ValidationReport | id, buildAttemptId, status, policyVersion, diagnostics, semanticEvaluation?; validation module                                                                         |
+| Publication      | profileId, artifactId?, version, updatedAt; publication module                                                                                                         |
+| AuditEvent       | id, actorId, action, resourceId, previousArtifactId?, newArtifactId?, correlationId, timestamp; audit module                                                           |
 
 Identifiers are opaque UUIDs. Timestamps are UTC ISO 8601. SHA-256 digests identify canonical bundle bytes or exact artifact bytes, not arbitrary object serialization. Specify canonical UTF-8 encoding, normalized file paths and deterministic manifest serialization in runtime-v1 before hashing is implemented.
 
@@ -28,10 +28,12 @@ Revision source and accepted artifacts are immutable. Job scheduling fixes runti
 
 ## Source bundle v1
 
-Manifest fields: schemaVersion, runtimeVersion, entryPoint (fixed Profile.tsx).
+The implemented wire format and exact authoring semantics are defined in [RUNTIME_V1_CONTRACT.md](RUNTIME_V1_CONTRACT.md); that document supersedes the earlier draft field sketch below where they differ.
+
+Manifest fields: schemaVersion, runtimeVersion, policyVersion, entryPoint (fixed Profile.tsx).
 Files: Profile.tsx and styles.css only. No arbitrary paths, binary files, symlinks, dependencies or build configuration. Limits and import/CSS rules belong to runtime policy.
 
-ProfileData v1: displayName, bio and sections (stable id, heading, plain-text body). Treat content as data; do not inject it as raw HTML. Link, image and interaction capabilities are deferred until their validation and serving rules are defined.
+ProfileData v1: schemaVersion, displayName, bio and sections (stable id, heading, plain-text body). Treat content as data; do not inject it as raw HTML. Link, image and interaction capabilities are deferred until their validation and serving rules are defined.
 
 ## Job state machine
 
@@ -50,19 +52,19 @@ AI generation and repair runs have their own bounded orchestration records; they
 
 ## Creator-facing endpoints
 
-| Method and path | Behavior |
-|---|---|
-| POST /profiles | Create an owned profile; 201 |
-| GET /profiles/{profileId} | Read an owned profile and publication metadata |
-| POST /profiles/{profileId}/revisions | Validate bundle shape and append an immutable revision; 201 |
-| GET /profiles/{profileId}/revisions | List owned revision metadata with cursor pagination |
-| GET /profiles/{profileId}/revisions/{revisionId} | Retrieve owned source |
-| POST /profiles/{profileId}/revisions/{revisionId}/build-jobs | Schedule build; 202 with job id and status URL |
-| GET /build-jobs/{jobId} | Read authorized status, attempt summaries and diagnostics |
-| POST /build-jobs/{jobId}/cancellation | Request cancellation; idempotent |
-| POST /artifacts/{artifactId}/preview-sessions | Create short-lived authorized preview access; no credential is passed into generated code |
-| PUT /profiles/{profileId}/publication | Set artifactId, or null to unpublish; requires If-Match publication version |
-| GET /profiles/{profileId}/publication | Return artifact reference and ETag for initial and subsequent updates |
+| Method and path                                              | Behavior                                                                                  |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| POST /profiles                                               | Create an owned profile; 201                                                              |
+| GET /profiles/{profileId}                                    | Read an owned profile and publication metadata                                            |
+| POST /profiles/{profileId}/revisions                         | Validate bundle shape and append an immutable revision; 201                               |
+| GET /profiles/{profileId}/revisions                          | List owned revision metadata with cursor pagination                                       |
+| GET /profiles/{profileId}/revisions/{revisionId}             | Retrieve owned source                                                                     |
+| POST /profiles/{profileId}/revisions/{revisionId}/build-jobs | Schedule build; 202 with job id and status URL                                            |
+| GET /build-jobs/{jobId}                                      | Read authorized status, attempt summaries and diagnostics                                 |
+| POST /build-jobs/{jobId}/cancellation                        | Request cancellation; idempotent                                                          |
+| POST /artifacts/{artifactId}/preview-sessions                | Create short-lived authorized preview access; no credential is passed into generated code |
+| PUT /profiles/{profileId}/publication                        | Set artifactId, or null to unpublish; requires If-Match publication version               |
+| GET /profiles/{profileId}/publication                        | Return artifact reference and ETag for initial and subsequent updates                     |
 
 Rollback uses the publication endpoint with a previous eligible artifactId. The API verifies artifact/profile ownership, acceptance and expected publication version in one transaction and records audit alongside the update. A new profile has an explicit unpublished publication version.
 

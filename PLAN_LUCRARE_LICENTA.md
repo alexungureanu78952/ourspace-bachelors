@@ -378,3 +378,7 @@ Structura proiectului va separa formatul de authoring, contractul arborelui de p
 Contractele si politicile vor fi versionate explicit. Extinderea sau restrangerea capabilitatilor necesita dovezi relevante de securitate, performanta si compatibilitate, criterii de acceptanta si actualizarea documentatiei. Reviziile si artefactele existente raman imuabile; migrarile produc versiuni noi, iar revocarea de securitate poate bloca artefactele nesigure.
 
 Cerintele concrete de structurare, compatibilitate si evaluare sunt definite in [planul de implementare](docs/IMPLEMENTATION_ROADMAP.md#design-requirement-flexibility-as-capabilities-evolve) si in ADR-007.
+
+## 10. Baseline runtime-v1 si standarde de calitate
+
+Contractul initial implementat, modularitatea si limitele sunt documentate in [RUNTIME_V1_CONTRACT.md](docs/RUNTIME_V1_CONTRACT.md). Runtime-ul include scheme versionate, diagnosticare consistenta si extensia controlata pentru sectiuni. Pipeline-ul de calitate verifica TypeScript strict, ESLint, Prettier, compatibilitatea schemelor generate, teste de contract/securitate si verificari browser/accesibilitate. Acest progres valideaza subsistemul de profiluri; serviciile sociale si fluxul autentificat de publicare raman obligatorii si urmeaza in implementare.

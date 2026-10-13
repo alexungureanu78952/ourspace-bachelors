@@ -2,3 +2,5 @@ node_modules/
 runtime/profile-spike/artifacts/
 runtime/profile-spike/test-results/
 
+.build/
+runtime/profile-v1/artifacts/

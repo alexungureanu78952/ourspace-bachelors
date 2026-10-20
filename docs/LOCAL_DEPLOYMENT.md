@@ -25,6 +25,16 @@ Caddy terminates HTTPS and forwards to unexposed HTTP services on the private Do
 
 Mailpit captures actual SMTP messages and does not forward them externally. The identity adapter requires STARTTLS, validates the local certificate and retains mandatory confirmation. The generated private CA has no revocation-list service, so Email:CheckCertificateRevocation=false is approved only in the LocalDocker environment. Production startup rejects that setting; SMTP hostname and CA-chain validation stay enabled. Read the confirmation/reset links in the mailbox.
 
+## Live demo
+
+1. Register at the accounts URL and open the confirmation email in Mailpit. Follow the link and press Continue.
+2. Open the application and sign in. Enter a display name under Create a private profile and press Create profile.
+3. The page displays the saved name, profile ID, owner account and creation time. Copy the profile ID for later use.
+4. Press Load profile or refresh the result page to retrieve the same stored profile. To demonstrate denial, try a nonexistent ID or another account's profile ID; both are unavailable.
+5. Sign out and sign back in, then paste the saved ID to load the profile again. Password recovery is available from the signed-out page, with its email captured in Mailpit.
+
+These are ordinary HTML forms using the existing server-side authentication and ownership rules. Profile creation requires a CSRF token. The current profile data is a display name and ownership metadata; the customizable profile editor and Next.js interface remain later milestones.
+
 ## Browser certificate trust
 
 The local CA is intentionally not installed in your operating system automatically. To trust it for your own Windows account, review .local/deployment/ca.crt and optionally run:

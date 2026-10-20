@@ -52,6 +52,12 @@ try {
     ).status(),
     400,
   );
+  assert.equal(
+    (
+      await page.request.post(bff + '/bff/demo/profiles', { form: { displayName: 'Anonymous' } })
+    ).status(),
+    401,
+  );
   const registrationPage = await page.goto(identity + '/account/register');
   assert.equal(registrationPage.status(), 200, await page.locator('body').innerText());
   assert.equal(
@@ -80,6 +86,33 @@ try {
       JSON.stringify(navigation.slice(-12)) + '\n' + (await page.locator('body').innerText()),
     );
   });
+  const demoName = 'Demo <img src=x onerror=alert(1)>';
+  await page.getByLabel('Display name', { exact: true }).fill(demoName);
+  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
+  const demoId = await page.locator('#profile-id').innerText();
+  assert.equal(await page.getByText(demoName, { exact: true }).count(), 1);
+  assert.equal(await page.locator('img').count(), 0);
+  await page.getByLabel('Profile ID', { exact: true }).fill(demoId);
+  await page.getByRole('button', { name: 'Load profile', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
+  await page.reload();
+  assert.equal(await page.locator('#profile-id').innerText(), demoId);
+  await page.getByLabel('Profile ID', { exact: true }).fill(crypto.randomUUID());
+  await page.getByRole('button', { name: 'Load profile', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'Profile not found or unavailable' }).waitFor();
+  await page.getByLabel('Profile ID', { exact: true }).fill('invalid-id');
+  await page.getByRole('button', { name: 'Load profile', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'Enter a valid profile ID' }).waitFor();
+  await page.getByLabel('Display name', { exact: true }).fill('   ');
+  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'Use a display name' }).waitFor();
+  assert.equal(
+    (
+      await page.request.post(bff + '/bff/demo/profiles', { form: { displayName: 'Missing CSRF' } })
+    ).status(),
+    400,
+  );
   const session = (await context.cookies(bff)).find(
     (cookie) => cookie.name === '__Host-OurSpace.Bff',
   );

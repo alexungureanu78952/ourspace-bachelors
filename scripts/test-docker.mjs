@@ -99,17 +99,17 @@ try {
     ).status(),
     400,
   );
-  const csrf = await (await page.request.get(app + '/bff/csrf')).json();
-  const created = await page.request.post(app + '/bff/profiles', {
-    headers: { 'X-CSRF-TOKEN': csrf.token },
-    data: { displayName: 'Docker deployment profile' },
-  });
-  assert.equal(
-    created.status(),
-    201,
-    'Profile creation through the container JWT validator failed.',
-  );
-  const profile = await created.json();
+  await page.getByLabel('Display name', { exact: true }).fill('Docker deployment profile');
+  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
+  const profileId = await page.locator('#profile-id').innerText();
+  await page.getByLabel('Profile ID', { exact: true }).fill(profileId);
+  await page.getByRole('button', { name: 'Load profile', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
+  assert.equal(await page.getByText('Docker deployment profile', { exact: true }).count(), 1);
+  const stored = await page.request.get(app + '/bff/profiles/' + profileId);
+  assert.equal(stored.status(), 200, 'Profile must be stored through the container JWT validator.');
+  const profile = await stored.json();
   compose('up', '-d', '--no-deps', '--force-recreate', '--wait', 'identity', 'bff', 'profiles');
   await waitReady();
   assert.equal((await page.request.get(app + '/bff/me')).status(), 200);

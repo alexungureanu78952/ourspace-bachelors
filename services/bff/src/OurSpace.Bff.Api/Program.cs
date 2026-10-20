@@ -1,5 +1,3 @@
-using System.Net.Http.Headers;
-using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -30,6 +28,7 @@ builder.Services.AddDbContextFactory<SessionDbContext>((services, options) =>
 builder.Services.AddSingleton<PostgresTicketStore>();
 builder.Services.AddSingleton<ITicketStore>(services => services.GetRequiredService<PostgresTicketStore>());
 builder.Services.AddScoped<BackendTokens>();
+builder.Services.AddScoped<ProfilesBackend>();
 builder.Services.AddHostedService<SessionMaintenance>();
 builder.Services.AddHttpClient("identity", client => client.Timeout = TimeSpan.FromSeconds(10))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
@@ -111,13 +110,7 @@ app.MapGet("/health/ready", async (SessionDbContext database, CancellationToken 
 app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));
 app.MapGet("/bff/login", (string? returnUrl) =>
     Results.Challenge(new AuthenticationProperties { RedirectUri = LocalPath(returnUrl) ? returnUrl : "/" }, [OpenIdConnectDefaults.AuthenticationScheme]));
-app.MapGet("/", (HttpContext context, IAntiforgery antiforgery) =>
-{
-    var token = antiforgery.GetAndStoreTokens(context);
-    return Results.Content("<!doctype html><html lang=\"en\"><title>OurSpace</title><main><h1>OurSpace</h1><a href=\"/bff/login\">Sign in</a>" +
-        "<form method=\"post\" action=\"/bff/logout\"><input type=\"hidden\" name=\"__RequestVerificationToken\" value=\"" +
-        HtmlEncoder.Default.Encode(token.RequestToken ?? string.Empty) + "\"><button>Sign out</button></form></main></html>", "text/html");
-});
+app.MapGet("/", DemoEndpoints.LoadAsync);
 var api = app.MapGroup("/bff").RequireAuthorization();
 api.AddEndpointFilter(async (context, next) =>
 {
@@ -132,28 +125,23 @@ api.MapGet("/me", (HttpContext context) => Results.Ok(new { userId = context.Use
 api.MapGet("/csrf", (HttpContext context, IAntiforgery antiforgery) => Results.Ok(new { token = antiforgery.GetAndStoreTokens(context).RequestToken }));
 api.MapPost("/logout", () => Results.SignOut(new AuthenticationProperties { RedirectUri = "/" },
     [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]));
-api.MapPost("/profiles", async (CreateProfileRequest input, HttpContext context, BackendTokens tokens, IHttpClientFactory clients, IOptions<BffSettings> settings) =>
-    await Forward(context, tokens, clients, settings.Value, HttpMethod.Post, "/api/v1/profiles/", input));
-api.MapGet("/profiles/{id:guid}", async (Guid id, HttpContext context, BackendTokens tokens, IHttpClientFactory clients, IOptions<BffSettings> settings) =>
-    await Forward(context, tokens, clients, settings.Value, HttpMethod.Get, "/api/v1/profiles/" + id, null));
+api.MapPost("/demo/profiles", DemoEndpoints.CreateAsync);
+api.MapPost("/profiles", async (CreateProfileRequest input, HttpContext context, ProfilesBackend profiles) =>
+    await Forward(await profiles.CreateAsync(context, input), context.RequestAborted));
+api.MapGet("/profiles/{id:guid}", async (Guid id, HttpContext context, ProfilesBackend profiles) =>
+    await Forward(await profiles.GetAsync(context, id), context.RequestAborted));
 app.Run();
 
 static bool SecureOrigin(string value) => Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.GetLeftPart(UriPartial.Authority) == value && uri.UserInfo.Length == 0;
 static bool LocalPath(string? value) => value is { Length: > 0 } && value.StartsWith('/') && !value.StartsWith("//", StringComparison.Ordinal) && !value.Contains('\\') && !value.Any(char.IsControl);
-static async Task<IResult> Forward(HttpContext context, BackendTokens tokens, IHttpClientFactory clients, BffSettings settings, HttpMethod method, string path, CreateProfileRequest? body)
+static async Task<IResult> Forward(HttpResponseMessage? response, CancellationToken cancellationToken)
 {
-    var token = await tokens.GetAsync(context);
-    if (token is null)
+    if (response is null) return Results.Unauthorized();
+    using (response)
     {
-        await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return Results.Unauthorized();
+        var content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        return Results.Content(System.Text.Encoding.UTF8.GetString(content), "application/json", statusCode: (int)response.StatusCode);
     }
-    using var request = new HttpRequestMessage(method, settings.ProfilesOrigin + path);
-    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-    if (body is not null) request.Content = JsonContent.Create(body);
-    using var response = await clients.CreateClient("profiles").SendAsync(request, context.RequestAborted);
-    var content = await response.Content.ReadAsByteArrayAsync(context.RequestAborted);
-    return Results.Content(System.Text.Encoding.UTF8.GetString(content), "application/json", statusCode: (int)response.StatusCode);
 }
 
 #pragma warning disable CA1050 // Top-level entry-point test hook.

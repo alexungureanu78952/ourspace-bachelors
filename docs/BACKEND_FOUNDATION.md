@@ -82,6 +82,7 @@ Coverage includes:
 
 - Domain name/identifier boundaries, current-user ownership and anonymous rejection.
 - Owner API access, foreign-user denial, persistence through a new API host and rejected owner spoofing.
+- Concurrent profile creation yields one success and conflicts for the other requests; the migration preserves historical duplicates, deterministically selects the active profile and hides archived rows from lookup.
 - Test authentication confined to the test host; production JWT handling ignores the test header.
 - Genuine RSA-signed test tokens accepted by the real JWT validator; wrong audience, expired tokens and untrusted signatures rejected.
 - Insecure issuer configuration rejected.
@@ -94,6 +95,8 @@ Test signing keys and static issuer metadata live in the test assembly only. The
 Packages and the EF tool are pinned; NuGet lockfiles support --locked-mode. Recommended analyzers and warnings-as-errors apply to handwritten code. EF migration files are marked generated in EditorConfig. Use dotnet format OurSpace.slnx before committing C# changes. Keep the installed SDK/runtime security patches current; global.json currently records the available 10.0.204 SDK with compatible .NET 10 feature-band roll-forward; container SDK/runtime images are pinned by digest.
 
 ## Remaining work and next decisions
+
+The approved immediate milestone is [account lifecycle and service consistency](ACCOUNT_LIFECYCLE.md), including staged suspension/deletion, service authentication and RabbitMQ. Its delivery status is tracked explicitly. One active profile per account is now enforced by a filtered unique index; pre-existing duplicates are preserved as archived profiles and excluded from profile lookup. Creating another active profile returns HTTP 409.
 
 OpenIddict and a dedicated ASP.NET Core BFF are now approved. The approved account flows are implemented; follow [AUTHENTICATION.md](AUTHENTICATION.md) for their configuration and operational limits. Profile revisions, durable validation jobs, private preview, publication, rollback, API idempotency, resource/rate limits and complete error/audit conventions follow this foundation. Social graph, content, feed and messaging remain separate required services.
 

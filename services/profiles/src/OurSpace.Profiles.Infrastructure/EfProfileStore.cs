@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using OurSpace.Profiles.Application;
 using OurSpace.Profiles.Domain;
 
@@ -23,9 +24,17 @@ public sealed class EfProfileStore(ProfilesDbContext database) : IProfileStore
             Payload = JsonSerializer.Serialize(new { profileId = profile.Id, ownerId = profile.OwnerId }),
         });
         // EF commits the profile and event in the same local transaction.
-        await database.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+        { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Profiles_OwnerId" })
+        {
+            throw new ProfileAlreadyExistsException(exception);
+        }
     }
 
     public Task<Profile?> FindAsync(Guid profileId, CancellationToken cancellationToken) =>
-        database.Profiles.AsNoTracking().SingleOrDefaultAsync(p => p.Id == profileId, cancellationToken);
+        database.Profiles.AsNoTracking().SingleOrDefaultAsync(p => p.Id == profileId && !p.IsArchived, cancellationToken);
 }

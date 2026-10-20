@@ -48,7 +48,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         }
     }
 
-    private async Task<string> CreateDatabaseAsync()
+    internal async Task<string> CreateDatabaseAsync()
     {
         var name = "ourspace_test_" + Guid.NewGuid().ToString("N");
         await using var connection = new NpgsqlConnection(adminConnection);

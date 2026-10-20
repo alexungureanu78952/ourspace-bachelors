@@ -61,6 +61,7 @@ public static class DemoEndpoints
             HttpStatusCode.BadRequest => ("Use a display name of 1-200 characters without control characters.", 400),
             HttpStatusCode.NotFound => ("Profile not found or unavailable to this account.", 404),
             HttpStatusCode.Forbidden => ("You cannot access this profile.", 403),
+            HttpStatusCode.Conflict => ("This account already has a profile. Load your existing profile using its ID.", 409),
             _ => ("The profile service is unavailable. Please try again.", 503),
         };
         return DemoPage.Render(context, antiforgery, authority, error: message, profileId: profileId, statusCode: code);

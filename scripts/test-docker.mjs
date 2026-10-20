@@ -103,6 +103,9 @@ try {
   await page.getByRole('button', { name: 'Create profile', exact: true }).click();
   await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
   const profileId = await page.locator('#profile-id').innerText();
+  await page.getByLabel('Display name', { exact: true }).fill('Second profile');
+  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'This account already has a profile' }).waitFor();
   await page.getByLabel('Profile ID', { exact: true }).fill(profileId);
   await page.getByRole('button', { name: 'Load profile', exact: true }).click();
   await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();

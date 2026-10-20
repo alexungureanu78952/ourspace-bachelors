@@ -93,6 +93,9 @@ try {
   const demoId = await page.locator('#profile-id').innerText();
   assert.equal(await page.getByText(demoName, { exact: true }).count(), 1);
   assert.equal(await page.locator('img').count(), 0);
+  await page.getByLabel('Display name', { exact: true }).fill('Second profile');
+  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'This account already has a profile' }).waitFor();
   await page.getByLabel('Profile ID', { exact: true }).fill(demoId);
   await page.getByRole('button', { name: 'Load profile', exact: true }).click();
   await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
@@ -136,10 +139,12 @@ try {
   });
   assert.equal(
     created.status(),
-    201,
-    'Profile creation must succeed through the real token validator.',
+    409,
+    'An account cannot create a second profile through the real token validator.',
   );
-  const profile = await created.json();
+  const profileResponse = await page.request.get(bff + '/bff/profiles/' + demoId);
+  assert.equal(profileResponse.status(), 200);
+  const profile = await profileResponse.json();
   assert.equal(profile.ownerId, (await (await page.request.get(bff + '/bff/me')).json()).userId);
   assert.ok(!JSON.stringify(profile).includes('access_token'));
   await page.request.post(bff + '/__test/expire-access');

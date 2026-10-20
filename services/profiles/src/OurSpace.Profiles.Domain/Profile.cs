@@ -16,6 +16,7 @@ public sealed class Profile
     public Guid OwnerId { get; private set; }
     public string DisplayName { get; private set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; private set; }
+    public bool IsArchived { get; private set; }
 
     public static Profile Create(Guid id, Guid ownerId, string displayName, DateTimeOffset createdAt)
     {

@@ -11,6 +11,8 @@ Use stable user/profile IDs across contracts. Model friend requests, accepted fr
 
 ## Records and invariants
 
+Each account has at most one active profile. PostgreSQL enforces this cardinality; duplicate creation returns HTTP 409. Existing extra profiles are retained as archived rows and excluded from profile lookup. Follow [account lifecycle and service consistency](ACCOUNT_LIFECYCLE.md) for approved lifecycle behavior and its implementation status.
+
 | Record           | Required fields and ownership                                                                                                                                          |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Profile          | id, ownerId, slug, displayName, createdAt; profiles module                                                                                                             |

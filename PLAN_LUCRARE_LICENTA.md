@@ -4,6 +4,8 @@
 
 **OurSpace AI: platforma sociala completa cu prietenii, feed, mesagerie privata si profiluri web personalizabile asistate de AI**
 
+Milestone curent: [ciclul de viata al conturilor si consistenta intre servicii](docs/ACCOUNT_LIFECYCLE.md). Decizii aprobate: un profil activ per cont, suspendare si cerere de stergere fara eliminare imediata a datelor, verificari autoritative autentificate la Identity si evenimente durabile prin RabbitMQ. Documentul precizeaza separat ce este implementat si ce ramane de implementat.
+
 ## 1. Logica de business si motivatia proiectului
 
 Platformele sociale clasice ofera utilizatorilor optiuni limitate de personalizare. Proiectul propune o platforma inspirata de MySpace, adaptata la tehnologiile actuale, in care utilizatorii isi pot crea un profil web personalizat prin descrieri naturale si prin editarea directa a codului generat.

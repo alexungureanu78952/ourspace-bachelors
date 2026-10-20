@@ -106,7 +106,7 @@ Select optional research extensions only after the baseline is measured. Any req
 
 ## Immediate next coding task
 
-The runtime and first backend foundation are implemented; see [RUNTIME_V1_CONTRACT.md](RUNTIME_V1_CONTRACT.md) and [BACKEND_FOUNDATION.md](BACKEND_FOUNDATION.md). OpenIddict and a dedicated .NET BFF are approved. The approved account flows and BFF session implementation are documented in [AUTHENTICATION.md](AUTHENTICATION.md). Next implement owned profile revisions and their API contracts, then durable validation jobs, private preview, publication and rollback. Consult the user before making new product or architecture decisions. Follow social-service integration contracts from the start; arbitrary user JavaScript remains disabled.
+The runtime and first backend foundation are implemented; see [RUNTIME_V1_CONTRACT.md](RUNTIME_V1_CONTRACT.md) and [BACKEND_FOUNDATION.md](BACKEND_FOUNDATION.md). OpenIddict and a dedicated .NET BFF are approved. The approved account flows and BFF session implementation are documented in [AUTHENTICATION.md](AUTHENTICATION.md). Next implement the remaining [account lifecycle and service consistency](ACCOUNT_LIFECYCLE.md) controls in their documented order, starting with Identity's state model and versioned transitions. This is final-product foundation work and does not block demonstrating the existing local account/profile flow. After verification, implement owned profile revisions and their API contracts, then durable validation jobs, private preview, publication and rollback. Consult the user before making new product or architecture decisions. Follow social-service integration contracts from the start; arbitrary user JavaScript remains disabled.
 
 ## Runtime experiment results
 
@@ -124,4 +124,6 @@ The identity EF store/migrations and modular profiles create/read API now exist.
 
 ## Local deployment foundation
 
-The approved local-only deployment uses Caddy HTTPS, Mailpit STARTTLS capture, separate PostgreSQL stores, explicit migrations and limited runtime roles, encrypted persistent key rings, readiness checks, cleanup and backup/restore tooling. See [LOCAL_DEPLOYMENT.md](LOCAL_DEPLOYMENT.md). Next.js and internet hosting remain separate work. The next product implementation task remains owned profile revisions and the validation/publication lifecycle.
+The approved local-only deployment uses Caddy HTTPS, Mailpit STARTTLS capture, separate PostgreSQL stores, explicit migrations and limited runtime roles, encrypted persistent key rings, readiness checks, cleanup and backup/restore tooling. See [LOCAL_DEPLOYMENT.md](LOCAL_DEPLOYMENT.md). Next.js and internet hosting remain separate work.
+
+The immediate next milestone is [account lifecycle and service consistency](ACCOUNT_LIFECYCLE.md): one active profile per account, staged suspension/deletion, authenticated authoritative account checks, and reliable RabbitMQ events with outbox/inbox processing. The document distinguishes implemented constraints from pending controls. Complete and verify this milestone before proceeding to owned profile revisions and the validation/publication lifecycle.

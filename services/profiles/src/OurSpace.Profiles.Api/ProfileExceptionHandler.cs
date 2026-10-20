@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using OurSpace.Profiles.Application;
 using OurSpace.Profiles.Domain;
 
 namespace OurSpace.Profiles.Api;
@@ -8,20 +9,25 @@ public sealed class ProfileExceptionHandler(IProblemDetailsService problems) : I
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        if (exception is not ProfileValidationException && exception is not UnauthorizedAccessException)
+        if (exception is not (ProfileValidationException or UnauthorizedAccessException or ProfileAlreadyExistsException))
         {
             return false;
         }
 
-        httpContext.Response.StatusCode = exception is ProfileValidationException
-            ? StatusCodes.Status400BadRequest : StatusCodes.Status401Unauthorized;
+        var (status, title) = exception switch
+        {
+            ProfileValidationException => (StatusCodes.Status400BadRequest, "Invalid profile"),
+            ProfileAlreadyExistsException => (StatusCodes.Status409Conflict, "Profile already exists"),
+            _ => (StatusCodes.Status401Unauthorized, "Authentication required"),
+        };
+        httpContext.Response.StatusCode = status;
         return await problems.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,
             ProblemDetails = new ProblemDetails
             {
                 Status = httpContext.Response.StatusCode,
-                Title = exception is ProfileValidationException ? "Invalid profile" : "Authentication required",
+                Title = title,
                 Detail = exception.Message,
                 Extensions = { ["correlationId"] = httpContext.TraceIdentifier },
             },

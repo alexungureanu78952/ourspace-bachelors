@@ -4,3 +4,13 @@ runtime/profile-spike/test-results/
 
 .build/
 runtime/profile-v1/artifacts/
+**/bin/
+**/obj/
+.local/
+**/TestResults/
+
+*.pfx
+*.key
+.env
+.env.*
+!.env.example

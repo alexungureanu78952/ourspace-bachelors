@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../services/identity/src/OurSpace.Identity.Infrastructure/OurSpace.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="../../services/bff/src/OurSpace.Bff.Infrastructure/OurSpace.Bff.Infrastructure.csproj" />
+    <ProjectReference Include="../../services/profiles/src/OurSpace.Profiles.Infrastructure/OurSpace.Profiles.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

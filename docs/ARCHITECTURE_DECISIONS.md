@@ -89,3 +89,25 @@ Decision: friendships, posts/feed and private messaging are required product sco
 Follow [social platform architecture](SOCIAL_PLATFORM_ARCHITECTURE.md) for authoritative ownership, API/event contracts, outbox/inbox processing, service authentication and visibility enforcement. Shared local infrastructure does not permit direct cross-service database access. Social integrations are hosted in trusted application UI, not privileged generated profile code.
 
 This supersedes ADR-002's earlier suggestion that the API/worker decomposition could describe the full system or that social services were merely optional later splits. Public profile rendering must remain independent of messaging/feed availability. Baseline private messaging is required; end-to-end encryption remains separately evaluated.
+
+## ADR-009: Testable identity and profile-service foundation
+
+Decision (2026-10-20, agreed with the user): use dedicated ASP.NET Core Identity persistence, .NET 10, EF Core/PostgreSQL, stable user IDs and a future HttpOnly browser session through a trusted backend. Application operations receive an ICurrentUser abstraction; production HTTP code adapts validated claims. Test authentication belongs exclusively to test assemblies; authorization and ownership rules are never bypassed.
+
+Profiles and identity own separate databases and migrations. Real PostgreSQL integration tests complement fake-store unit tests. The first delivered behavior is create/read private profiles with server-derived ownership and an atomic outbox record.
+
+The profiles API's JWT validator is a provider-neutral boundary, not a choice of token server or a completed login system. The user subsequently approved OpenIddict and a dedicated .NET BFF in ADR-010; account-flow behavior is now approved in ADR-011. See [backend foundation](BACKEND_FOUNDATION.md) for implemented behavior, validation and remaining gaps.
+
+## ADR-010: Self-hosted OpenIddict and a dedicated .NET BFF
+
+Decision (2026-10-20, explicitly approved by the user): use OpenIddict alongside ASP.NET Core Identity and implement browser sessions in a dedicated ASP.NET Core BFF. Next.js remains the UI. The user accepts the additional implementation/maintenance effort in return for control and learning value.
+
+Tokens remain server-side and services retain their own authorization checks. Preserve the existing test adapters. Follow [the authentication implementation plan](AUTHENTICATION_IMPLEMENTATION_PLAN.md) for the first real sign-in milestone and its acceptance checks. Registration/verification behavior and production operational details are not implicitly approved by this technology decision.
+
+## ADR-011: Confirmed-email accounts and replaceable delivery
+
+Decision (2026-10-20, approved by the user): public email/password registration requires confirmed email before login; support password reset and account lockout. Deliver links through IAccountEmailSender, with SMTP for actual delivery and a captured sender in tests. Keep real account policy enabled in tests. The dedicated BFF stores encrypted session tickets in its own PostgreSQL database; only protected session references reach browser cookies. See [authentication policy and deployment limits](AUTHENTICATION.md).
+
+## ADR-012: Reproducible local Docker deployment
+
+Decision (2026-10-20, approved by the user): deploy locally using Caddy as the HTTPS gateway and Mailpit as the captured mailbox. Persist separate encrypted Identity/BFF key rings and databases; apply schema migrations through a one-shot privileged job and run services with limited database roles. Generate ignored credentials and certificates rather than embedding secrets in images or source. The user explicitly approved disabling SMTP revocation-list checks only for the generated local CA in LocalDocker, because that CA has no CRL service. Keep TLS, hostname and CA-chain validation; reject that setting in production. See [local deployment](LOCAL_DEPLOYMENT.md) for operational scope and verification.

@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup><PackageReference Include="OpenIddict.AspNetCore" /><PackageReference Include="MailKit" /><ProjectReference Include="../OurSpace.Identity.Infrastructure/OurSpace.Identity.Infrastructure.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../../shared/OurSpace.Hosting/OurSpace.Hosting.csproj" /></ItemGroup>
+</Project>

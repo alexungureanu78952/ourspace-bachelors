@@ -5,6 +5,10 @@ export default [
   {
     ignores: [
       '.build/**',
+      '**/bin/**',
+      '**/obj/**',
+      '.local/**',
+      '**/TestResults/**',
       'node_modules/**',
       'runtime/profile-spike/**',
       'runtime/profile-v1/artifacts/**',

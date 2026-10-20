@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../OurSpace.Profiles.Application/OurSpace.Profiles.Application.csproj" />
+    <ProjectReference Include="../OurSpace.Profiles.Infrastructure/OurSpace.Profiles.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="../../../shared/OurSpace.Hosting/OurSpace.Hosting.csproj" /></ItemGroup>
+</Project>

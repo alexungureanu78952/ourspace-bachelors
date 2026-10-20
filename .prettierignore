@@ -6,3 +6,8 @@ runtime/profile-v1/artifacts/
 docs/evidence/
 
 runtime/contracts/schemas/
+**/bin/
+**/obj/
+.local/
+**/TestResults/
+**/packages.lock.json

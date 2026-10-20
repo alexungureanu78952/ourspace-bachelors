@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../services/identity/src/OurSpace.Identity.Api/OurSpace.Identity.Api.csproj" Aliases="IdentityApi" />
+    <ProjectReference Include="../../services/bff/src/OurSpace.Bff.Api/OurSpace.Bff.Api.csproj" Aliases="BffApi" />
+    <ProjectReference Include="../../services/profiles/src/OurSpace.Profiles.Api/OurSpace.Profiles.Api.csproj" />
+    <ProjectReference Include="../../services/identity/src/OurSpace.Identity.Infrastructure/OurSpace.Identity.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio"><PrivateAssets>all</PrivateAssets></PackageReference>
+  </ItemGroup>
+</Project>

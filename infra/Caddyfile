@@ -1,0 +1,19 @@
+{
+    auto_https off
+    admin off
+    servers {
+        protocols h1 h2
+    }
+}
+https://app.localhost:7443 {
+    tls /run/secrets/tls.crt /run/secrets/tls.key
+    reverse_proxy bff:8080
+}
+https://identity.localhost:7443 {
+    tls /run/secrets/tls.crt /run/secrets/tls.key
+    reverse_proxy identity:8080
+}
+https://profiles.localhost:7443 {
+    tls /run/secrets/tls.crt /run/secrets/tls.key
+    reverse_proxy profiles:8080
+}

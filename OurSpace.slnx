@@ -1,0 +1,30 @@
+<Solution>
+  <Folder Name="/services/" />
+  <Folder Name="/services/bff/" />
+  <Folder Name="/services/bff/src/">
+    <Project Path="services/bff/src/OurSpace.Bff.Api/OurSpace.Bff.Api.csproj" />
+    <Project Path="services/bff/src/OurSpace.Bff.Infrastructure/OurSpace.Bff.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/services/identity/" />
+  <Folder Name="/services/identity/src/">
+    <Project Path="services/identity/src/OurSpace.Identity.Api/OurSpace.Identity.Api.csproj" />
+    <Project Path="services/identity/src/OurSpace.Identity.Infrastructure/OurSpace.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/services/profiles/" />
+  <Folder Name="/services/profiles/src/">
+    <Project Path="services/profiles/src/OurSpace.Profiles.Api/OurSpace.Profiles.Api.csproj" />
+    <Project Path="services/profiles/src/OurSpace.Profiles.Application/OurSpace.Profiles.Application.csproj" />
+    <Project Path="services/profiles/src/OurSpace.Profiles.Domain/OurSpace.Profiles.Domain.csproj" />
+    <Project Path="services/profiles/src/OurSpace.Profiles.Infrastructure/OurSpace.Profiles.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/services/shared/">
+    <Project Path="services/shared/OurSpace.Hosting/OurSpace.Hosting.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OurSpace.Backend.IntegrationTests/OurSpace.Backend.IntegrationTests.csproj" />
+    <Project Path="tests/OurSpace.Profiles.UnitTests/OurSpace.Profiles.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/OurSpace.Deployment/OurSpace.Deployment.csproj" />
+  </Folder>
+</Solution>

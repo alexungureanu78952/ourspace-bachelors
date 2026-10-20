@@ -1,0 +1,11 @@
+**
+!.editorconfig
+!global.json
+!Directory.Build.props
+!Directory.Packages.props
+!services/
+!services/**
+!tools/
+!tools/**
+**/bin/
+**/obj/

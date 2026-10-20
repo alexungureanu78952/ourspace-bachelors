@@ -106,7 +106,7 @@ Select optional research extensions only after the baseline is measured. Any req
 
 ## Immediate next coding task
 
-The first runtime-v1 contract and modular implementation are now defined in [RUNTIME_V1_CONTRACT.md](RUNTIME_V1_CONTRACT.md). Next scaffold the profiles service and trusted application with authentication, persistence, durable validation jobs, private preview, publication and rollback. Follow the social-service contracts and outbox/inbox conventions from the start. Keep arbitrary user-JavaScript execution disabled until a verified execution sandbox exists.
+The runtime and first backend foundation are implemented; see [RUNTIME_V1_CONTRACT.md](RUNTIME_V1_CONTRACT.md) and [BACKEND_FOUNDATION.md](BACKEND_FOUNDATION.md). OpenIddict and a dedicated .NET BFF are approved. The approved account flows and BFF session implementation are documented in [AUTHENTICATION.md](AUTHENTICATION.md). Next implement owned profile revisions and their API contracts, then durable validation jobs, private preview, publication and rollback. Consult the user before making new product or architecture decisions. Follow social-service integration contracts from the start; arbitrary user JavaScript remains disabled.
 
 ## Runtime experiment results
 
@@ -117,3 +117,11 @@ The spike informed the runtime-v1 baseline implemented below. The next work is t
 ## Runtime-v1 implementation baseline
 
 The runtime now separates typed schemas/policy, constrained JSX parsing, validation, React rendering and versioned artifact assembly. The sections capability demonstrates extension through those boundaries. Root quality checks enforce strict typing, module import rules, formatting, generated-schema consistency, security/contract fixtures, spike regression and browser/accessibility behavior. See [the contract](RUNTIME_V1_CONTRACT.md) for exact semantics and limits. This is not completion of the authenticated publication or social platform milestone.
+
+## Backend foundation delivered
+
+The identity EF store/migrations and modular profiles create/read API now exist. ICurrentUser and test-only authentication enable fast tests without disabling ownership checks. Separate PostgreSQL databases, initial migrations and atomic outbox persistence are covered by the backend quality gate. Account forms, OpenIddict and a dedicated BFF now provide the authentication slice. Next.js application pages and the publication lifecycle remain incomplete; do not mark the full manual-publication milestone complete.
+
+## Local deployment foundation
+
+The approved local-only deployment uses Caddy HTTPS, Mailpit STARTTLS capture, separate PostgreSQL stores, explicit migrations and limited runtime roles, encrypted persistent key rings, readiness checks, cleanup and backup/restore tooling. See [LOCAL_DEPLOYMENT.md](LOCAL_DEPLOYMENT.md). Next.js and internet hosting remain separate work. The next product implementation task remains owned profile revisions and the validation/publication lifecycle.

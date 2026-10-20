@@ -1,6 +1,6 @@
 # OurSpace
 
-OurSpace is a social platform with customizable AI-assisted profiles, friendships, posts/feed and private messaging. Development starts with the profile runtime; the application services are not implemented yet.
+OurSpace is a social platform with customizable AI-assisted profiles, friendships, posts/feed and private messaging. Development starts with the profile runtime; the first identity/profile backend foundation is now implemented, while the complete application and social services remain in development.
 
 ## Current implementation
 
@@ -52,3 +52,11 @@ Modules under runtime/contracts, authoring, validation, renderer and artifacts a
 The current runtime embeds its trusted JavaScript in artifacts. External shared-asset caching, bounded ingestion workers, private preview authorization, persistence and publication services remain future implementation. No arbitrary-code execution sandbox is enabled.
 
 Tool references: [TypeScript compiler API](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API), [typed ESLint](https://typescript-eslint.io/getting-started/typed-linting/), [Prettier CLI](https://prettier.io/docs/cli), [Playwright browsers](https://playwright.dev/docs/browsers), [Zod schemas](https://zod.dev/api).
+
+## Backend foundation
+
+.NET 10 identity/profile services, PostgreSQL migrations, ownership checks and test-only authentication are described in [BACKEND_FOUNDATION.md](docs/BACKEND_FOUNDATION.md). The approved account flows and BFF browser sessions are implemented; see [AUTHENTICATION.md](docs/AUTHENTICATION.md) for setup and remaining deployment work. Run npm run check:backend with a dedicated test database, or use the disposable Windows PostgreSQL runner documented there. Backend CI is separate from the runtime quality job.
+
+## Local Docker deployment
+
+Run npm run local:up to generate ignored local credentials and start PostgreSQL, identity, profiles, the BFF, Caddy HTTPS and Mailpit. See [LOCAL_DEPLOYMENT.md](docs/LOCAL_DEPLOYMENT.md) for URLs, certificate trust, deployment checks and backup/restore commands. npm run local:stop retains data and keys.

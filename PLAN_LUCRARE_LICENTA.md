@@ -382,3 +382,11 @@ Cerintele concrete de structurare, compatibilitate si evaluare sunt definite in 
 ## 10. Baseline runtime-v1 si standarde de calitate
 
 Contractul initial implementat, modularitatea si limitele sunt documentate in [RUNTIME_V1_CONTRACT.md](docs/RUNTIME_V1_CONTRACT.md). Runtime-ul include scheme versionate, diagnosticare consistenta si extensia controlata pentru sectiuni. Pipeline-ul de calitate verifica TypeScript strict, ESLint, Prettier, compatibilitatea schemelor generate, teste de contract/securitate si verificari browser/accesibilitate. Acest progres valideaza subsistemul de profiluri; serviciile sociale si fluxul autentificat de publicare raman obligatorii si urmeaza in implementare.
+
+## 11. Fundatia backend implementata
+
+Serviciile identity/profiles folosesc .NET 10, EF Core si baze PostgreSQL separate. Primul flux permite crearea si citirea profilului privat de catre proprietar, cu ICurrentUser decuplat si autentificare falsa exclusiv in proiectul de teste. Migrarile si tranzactia profil/outbox sunt verificate pe PostgreSQL real. Detalii si standarde: [BACKEND_FOUNDATION.md](docs/BACKEND_FOUNDATION.md). Utilizatorul a aprobat OpenIddict si un BFF dedicat ASP.NET Core. Fluxurile aprobate de inregistrare, confirmare email, resetare parola si sesiune BFF sunt implementate. Configurarea si limitele operationale sunt descrise in [AUTHENTICATION.md](docs/AUTHENTICATION.md). Interfata Next.js si publicarea urmeaza in implementare. Plan: [AUTHENTICATION_IMPLEMENTATION_PLAN.md](docs/AUTHENTICATION_IMPLEMENTATION_PLAN.md).
+
+## Deployment local reproductibil
+
+Deployment-ul local aprobat include Caddy HTTPS, Mailpit pentru capturarea emailurilor, baze PostgreSQL separate, migrari explicite si conturi runtime cu privilegii limitate. Cheile Identity/BFF sunt persistente si criptate; scripturile permit pornire, verificare si backup/restaurare in baze temporare. Configurare si limite: [LOCAL_DEPLOYMENT.md](docs/LOCAL_DEPLOYMENT.md). Gazduirea publica si interfata Next.js raman etape separate.

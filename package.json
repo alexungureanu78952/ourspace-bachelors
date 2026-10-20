@@ -17,7 +17,15 @@
     "schemas:check": "tsc && node .build/runtime/profile-v1/export-schemas.js --check",
     "check": "node scripts/check.mjs",
     "preview": "tsc && node .build/runtime/profile-v1/preview.js",
-    "schemas:generate": "tsc && node .build/runtime/profile-v1/export-schemas.js"
+    "schemas:generate": "tsc && node .build/runtime/profile-v1/export-schemas.js",
+    "check:backend": "node scripts/check-backend.mjs",
+    "check:all": "npm run check && npm run check:backend",
+    "local:up": "node scripts/local-deployment.mjs up",
+    "local:stop": "node scripts/local-deployment.mjs stop",
+    "local:status": "node scripts/local-deployment.mjs status",
+    "local:backup": "node scripts/local-deployment.mjs backup",
+    "local:verify-backup": "node scripts/local-deployment.mjs verify-backup",
+    "test:deployment": "node scripts/test-docker.mjs"
   },
   "dependencies": {
     "entities": "7.0.1",

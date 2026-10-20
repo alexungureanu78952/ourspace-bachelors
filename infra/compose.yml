@@ -1,0 +1,294 @@
+name: ourspace-local
+
+x-service: &service
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp:mode=1777
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging:
+    driver: json-file
+    options:
+      max-size: '10m'
+      max-file: '3'
+  environment:
+    OURSPACE_CONFIGURATION_FILE: /run/secrets/settings.json
+    ASPNETCORE_ENVIRONMENT: LocalDocker
+  healthcheck:
+    interval: 10s
+    timeout: 8s
+    retries: 12
+    start_period: 20s
+
+services:
+  profiles-db:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    environment:
+      POSTGRES_USER: ourspace_profiles
+      POSTGRES_DB: ourspace_profiles
+      POSTGRES_PASSWORD_FILE: /run/secrets/profiles-db-password
+    secrets:
+      - profiles-db-password
+    ports:
+      - '127.0.0.1:55432:5432'
+    volumes:
+      - profiles-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ourspace_profiles -d ourspace_profiles']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  identity-db:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    environment:
+      POSTGRES_USER: ourspace_identity
+      POSTGRES_DB: ourspace_identity
+      POSTGRES_PASSWORD_FILE: /run/secrets/identity-db-password
+    secrets:
+      - identity-db-password
+    ports:
+      - '127.0.0.1:55433:5432'
+    volumes:
+      - identity-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ourspace_identity -d ourspace_identity']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  bff-db:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    environment:
+      POSTGRES_USER: ourspace_bff
+      POSTGRES_DB: ourspace_bff
+      POSTGRES_PASSWORD_FILE: /run/secrets/bff-db-password
+    secrets:
+      - bff-db-password
+    ports:
+      - '127.0.0.1:55434:5432'
+    volumes:
+      - bff-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ourspace_bff -d ourspace_bff']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      args:
+        PROJECT: tools/OurSpace.Deployment/OurSpace.Deployment.csproj
+    entrypoint: ['dotnet', 'OurSpace.Deployment.dll', 'migrate']
+    secrets:
+      - migrations.json
+    depends_on:
+      profiles-db:
+        condition: service_healthy
+      identity-db:
+        condition: service_healthy
+      bff-db:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    security_opt:
+      - no-new-privileges:true
+
+  identity:
+    <<: *service
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      args:
+        PROJECT: services/identity/src/OurSpace.Identity.Api/OurSpace.Identity.Api.csproj
+    entrypoint: ['dotnet', 'OurSpace.Identity.Api.dll']
+    secrets:
+      - source: identity.json
+        target: settings.json
+      - ca.crt
+      - signing.pfx
+      - encryption.pfx
+      - identity-protection.pfx
+    volumes:
+      - identity-keys:/var/ourspace/keys
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'dotnet', 'OurSpace.Identity.Api.dll', '--health-check']
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 20s
+
+  profiles:
+    <<: *service
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      args:
+        PROJECT: services/profiles/src/OurSpace.Profiles.Api/OurSpace.Profiles.Api.csproj
+    entrypoint: ['dotnet', 'OurSpace.Profiles.Api.dll']
+    secrets:
+      - source: profiles.json
+        target: settings.json
+      - ca.crt
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD', 'dotnet', 'OurSpace.Profiles.Api.dll', '--health-check']
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 20s
+
+  bff:
+    <<: *service
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      args:
+        PROJECT: services/bff/src/OurSpace.Bff.Api/OurSpace.Bff.Api.csproj
+    entrypoint: ['dotnet', 'OurSpace.Bff.Api.dll']
+    secrets:
+      - source: bff.json
+        target: settings.json
+      - ca.crt
+      - bff-protection.pfx
+    volumes:
+      - bff-keys:/var/ourspace/keys
+    depends_on:
+      identity:
+        condition: service_healthy
+      profiles:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'dotnet', 'OurSpace.Bff.Api.dll', '--health-check']
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 20s
+
+  gateway:
+    image: caddy:2-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+    ports:
+      - '127.0.0.1:7443:7443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    secrets:
+      - tls.crt
+      - tls.key
+    depends_on:
+      bff:
+        condition: service_healthy
+    networks:
+      default:
+        ipv4_address: 172.29.249.10
+        aliases:
+          - app.localhost
+          - identity.localhost
+          - profiles.localhost
+    read_only: true
+    tmpfs:
+      - /data
+      - /config
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--quiet',
+          '--spider',
+          '--no-check-certificate',
+          'https://app.localhost:7443/health/ready',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  mailpit:
+    image: axllent/mailpit@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_TLS_CERT: /run/secrets/tls.crt
+      MP_SMTP_TLS_KEY: /run/secrets/tls.key
+      MP_SMTP_REQUIRE_STARTTLS: 'true'
+      MP_DISABLE_VERSION_CHECK: 'true'
+      MP_SMTP_DISABLE_RDNS: 'true'
+      MP_ALLOWED_HOSTS: 'localhost,127.0.0.1,mailpit'
+      MP_MAX_MESSAGES: '500'
+      MP_MAX_AGE: 7d
+      MP_QUIET: 'true'
+    ports:
+      - '127.0.0.1:8025:8025'
+    secrets:
+      - tls.crt
+      - tls.key
+    volumes:
+      - mail-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.29.249.0/24
+
+volumes:
+  profiles-data:
+  identity-data:
+  bff-data:
+  identity-keys:
+  bff-keys:
+  mail-data:
+
+secrets:
+  profiles-db-password:
+    file: ../.local/deployment/profiles-db-password
+  identity-db-password:
+    file: ../.local/deployment/identity-db-password
+  bff-db-password:
+    file: ../.local/deployment/bff-db-password
+  migrations.json:
+    file: ../.local/deployment/migrations.json
+  identity.json:
+    file: ../.local/deployment/identity.json
+  profiles.json:
+    file: ../.local/deployment/profiles.json
+  bff.json:
+    file: ../.local/deployment/bff.json
+  ca.crt:
+    file: ../.local/deployment/ca.crt
+  signing.pfx:
+    file: ../.local/deployment/signing.pfx
+  encryption.pfx:
+    file: ../.local/deployment/encryption.pfx
+  identity-protection.pfx:
+    file: ../.local/deployment/identity-protection.pfx
+  bff-protection.pfx:
+    file: ../.local/deployment/bff-protection.pfx
+  tls.crt:
+    file: ../.local/deployment/tls.crt
+  tls.key:
+    file: ../.local/deployment/tls.key

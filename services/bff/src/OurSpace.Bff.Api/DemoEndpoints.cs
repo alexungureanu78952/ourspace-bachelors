@@ -36,7 +36,7 @@ public static class DemoEndpoints
         var form = await context.Request.ReadFormAsync(context.RequestAborted);
         try
         {
-            using var response = await profiles.CreateAsync(context, new CreateProfileRequest(form["displayName"].ToString()));
+            using var response = await profiles.CreateAsync(context, new CreateProfileRequest(form["displayName"].ToString(), form["bio"].ToString()));
             if (response is null) return Results.Redirect("/");
             if (!response.IsSuccessStatusCode)
                 return Failure(context, antiforgery, settings.Value.Authority, response.StatusCode);

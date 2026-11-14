@@ -14,6 +14,7 @@ public sealed class ProfilesDbContext(DbContextOptions<ProfilesDbContext> option
         profile.ToTable("Profiles", table => table.HasCheckConstraint("CK_Profiles_DisplayName", "char_length(btrim(\"DisplayName\")) BETWEEN 1 AND 200"));
         profile.HasKey(p => p.Id);
         profile.Property(p => p.DisplayName).HasMaxLength(200).IsRequired();
+        profile.Property(p => p.Bio).HasMaxLength(500).IsRequired().HasDefaultValue(string.Empty);
         profile.HasIndex(p => p.OwnerId).IsUnique().HasFilter("NOT \"IsArchived\"");
 
         var outbox = modelBuilder.Entity<OutboxMessage>();

@@ -7,5 +7,16 @@
 !services/**
 !tools/
 !tools/**
+!package.json
+!package-lock.json
+!tsconfig.json
+!runtime/
+!runtime/**
+!frontend/
+!frontend/**
+frontend/node_modules/
+frontend/.next/
 **/bin/
 **/obj/
+runtime/profile-v1/artifacts/
+runtime/profile-spike/

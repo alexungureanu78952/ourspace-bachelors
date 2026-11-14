@@ -33,7 +33,7 @@ services:
     secrets:
       - profiles-db-password
     ports:
-      - '127.0.0.1:55432:5432'
+      - '127.0.0.1:15432:5432'
     volumes:
       - profiles-data:/var/lib/postgresql
     healthcheck:
@@ -51,7 +51,7 @@ services:
     secrets:
       - identity-db-password
     ports:
-      - '127.0.0.1:55433:5432'
+      - '127.0.0.1:15433:5432'
     volumes:
       - identity-data:/var/lib/postgresql
     healthcheck:
@@ -69,7 +69,7 @@ services:
     secrets:
       - bff-db-password
     ports:
-      - '127.0.0.1:55434:5432'
+      - '127.0.0.1:15434:5432'
     volumes:
       - bff-data:/var/lib/postgresql
     healthcheck:
@@ -156,9 +156,7 @@ services:
     <<: *service
     build:
       context: ..
-      dockerfile: infra/Dockerfile
-      args:
-        PROJECT: services/bff/src/OurSpace.Bff.Api/OurSpace.Bff.Api.csproj
+      dockerfile: infra/Dockerfile.bff
     entrypoint: ['dotnet', 'OurSpace.Bff.Api.dll']
     secrets:
       - source: bff.json

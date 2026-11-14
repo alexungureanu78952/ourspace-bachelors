@@ -37,4 +37,7 @@ public sealed class EfProfileStore(ProfilesDbContext database) : IProfileStore
 
     public Task<Profile?> FindAsync(Guid profileId, CancellationToken cancellationToken) =>
         database.Profiles.AsNoTracking().SingleOrDefaultAsync(p => p.Id == profileId && !p.IsArchived, cancellationToken);
+
+    public Task<Profile?> FindByOwnerAsync(Guid ownerId, CancellationToken cancellationToken) =>
+        database.Profiles.AsNoTracking().SingleOrDefaultAsync(p => p.OwnerId == ownerId && !p.IsArchived, cancellationToken);
 }

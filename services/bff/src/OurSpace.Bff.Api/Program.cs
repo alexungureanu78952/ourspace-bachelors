@@ -27,6 +27,7 @@ builder.Services.AddDbContextFactory<SessionDbContext>((services, options) =>
 });
 builder.Services.AddSingleton<PostgresTicketStore>();
 builder.Services.AddSingleton<ITicketStore>(services => services.GetRequiredService<PostgresTicketStore>());
+builder.Services.AddSingleton<ProfileArtifactService>();
 builder.Services.AddScoped<BackendTokens>();
 builder.Services.AddScoped<ProfilesBackend>();
 builder.Services.AddHostedService<SessionMaintenance>();
@@ -99,9 +100,10 @@ app.Use(async (context, next) =>
     context.Response.Headers["Referrer-Policy"] = "no-referrer";
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     var authority = context.RequestServices.GetRequiredService<IOptions<BffSettings>>().Value.Authority;
-    context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; connect-src 'self'; form-action 'self' " + authority + "; frame-ancestors 'none'; base-uri 'none'";
+    context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; font-src 'self'; form-action 'self' " + authority + "; frame-ancestors 'none'; base-uri 'none'";
     await next(context);
 });
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
@@ -110,7 +112,6 @@ app.MapGet("/health/ready", async (SessionDbContext database, CancellationToken 
 app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));
 app.MapGet("/bff/login", (string? returnUrl) =>
     Results.Challenge(new AuthenticationProperties { RedirectUri = LocalPath(returnUrl) ? returnUrl : "/" }, [OpenIdConnectDefaults.AuthenticationScheme]));
-app.MapGet("/", DemoEndpoints.LoadAsync);
 var api = app.MapGroup("/bff").RequireAuthorization();
 api.AddEndpointFilter(async (context, next) =>
 {
@@ -121,15 +122,39 @@ api.AddEndpointFilter(async (context, next) =>
     }
     return await next(context);
 });
-api.MapGet("/me", (HttpContext context) => Results.Ok(new { userId = context.User.FindFirst("sub")?.Value }));
+api.MapGet("/me", (HttpContext context) => Results.Ok(new
+{
+    userId = context.User.FindFirst("sub")?.Value,
+    name = context.User.FindFirst("name")?.Value,
+}));
 api.MapGet("/csrf", (HttpContext context, IAntiforgery antiforgery) => Results.Ok(new { token = antiforgery.GetAndStoreTokens(context).RequestToken }));
 api.MapPost("/logout", () => Results.SignOut(new AuthenticationProperties { RedirectUri = "/" },
     [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]));
 api.MapPost("/demo/profiles", DemoEndpoints.CreateAsync);
 api.MapPost("/profiles", async (CreateProfileRequest input, HttpContext context, ProfilesBackend profiles) =>
     await Forward(await profiles.CreateAsync(context, input), context.RequestAborted));
+api.MapGet("/profiles/me", async (HttpContext context, ProfilesBackend profiles) =>
+    await Forward(await profiles.GetMyAsync(context), context.RequestAborted));
 api.MapGet("/profiles/{id:guid}", async (Guid id, HttpContext context, ProfilesBackend profiles) =>
     await Forward(await profiles.GetAsync(context, id), context.RequestAborted));
+api.MapGet("/profiles/{id:guid}/view", async (Guid id, HttpContext context, ProfilesBackend profiles, ProfileArtifactService artifactService) =>
+{
+    var artifact = artifactService.Artifact;
+    if (artifact is null) return Results.NotFound();
+    using var response = await profiles.GetAsync(context, id);
+    if (response is null) return Results.Unauthorized();
+    if (!response.IsSuccessStatusCode) return Results.StatusCode((int)response.StatusCode);
+    var profile = await response.Content.ReadFromJsonAsync<DemoProfile>(context.RequestAborted);
+    if (profile is null) return Results.StatusCode(502);
+    var frameOrigin = $"{context.Request.Scheme}://{context.Request.Host}";
+    var (html, csp) = artifact.Build(profile.DisplayName, profile.Bio, frameOrigin);
+    context.Response.Headers.CacheControl = "no-store";
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    context.Response.Headers.ContentSecurityPolicy = csp;
+    return Results.Content(html, "text/html; charset=utf-8");
+});
+app.MapFallbackToFile("index.html").AllowAnonymous();
 app.Run();
 
 static bool SecureOrigin(string value) => Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.GetLeftPart(UriPartial.Authority) == value && uri.UserInfo.Length == 0;

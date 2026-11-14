@@ -76,8 +76,13 @@ profiles.MapPost("/", async (CreateProfileRequest request, ProfileOperations ope
         return Results.ValidationProblem(new Dictionary<string, string[]> { ["displayName"] = ["Display name is required."] });
     }
 
-    var profile = await operations.CreateAsync(request.DisplayName, cancellationToken);
+    var profile = await operations.CreateAsync(request.DisplayName, request.Bio ?? string.Empty, cancellationToken);
     return Results.Created($"/api/v1/profiles/{profile.Id}", profile);
+});
+profiles.MapGet("/me", async (ProfileOperations operations, CancellationToken cancellationToken) =>
+{
+    var profile = await operations.GetMyAsync(cancellationToken);
+    return profile is null ? Results.NotFound() : Results.Ok(profile);
 });
 profiles.MapGet("/{profileId:guid}", async (Guid profileId, ProfileOperations operations, CancellationToken cancellationToken) =>
 {

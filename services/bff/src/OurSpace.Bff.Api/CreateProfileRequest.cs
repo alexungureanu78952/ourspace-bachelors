@@ -1,3 +1,3 @@
 namespace OurSpace.Bff.Api;
 
-public sealed record CreateProfileRequest(string? DisplayName);
+public sealed record CreateProfileRequest(string? DisplayName, string? Bio);

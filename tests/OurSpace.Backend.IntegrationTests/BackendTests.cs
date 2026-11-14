@@ -120,12 +120,12 @@ public sealed class BackendTests(PostgresFixture postgres) : IClassFixture<Postg
         var options = new DbContextOptionsBuilder<ProfilesDbContext>().UseNpgsql(postgres.ProfilesConnection).Options;
         await using (var first = new ProfilesDbContext(options))
         {
-            await new EfProfileStore(first).AddAsync(Profile.Create(id, Guid.NewGuid(), "First", DateTimeOffset.UtcNow), CancellationToken.None);
+            await new EfProfileStore(first).AddAsync(Profile.Create(id, Guid.NewGuid(), "First", string.Empty, DateTimeOffset.UtcNow), CancellationToken.None);
         }
 
         await using (var second = new ProfilesDbContext(options))
         {
-            await Assert.ThrowsAsync<DbUpdateException>(() => new EfProfileStore(second).AddAsync(Profile.Create(id, Guid.NewGuid(), "Duplicate", DateTimeOffset.UtcNow), CancellationToken.None));
+            await Assert.ThrowsAsync<DbUpdateException>(() => new EfProfileStore(second).AddAsync(Profile.Create(id, Guid.NewGuid(), "Duplicate", string.Empty, DateTimeOffset.UtcNow), CancellationToken.None));
         }
 
         await using var verification = new ProfilesDbContext(options);

@@ -13,6 +13,9 @@ public sealed class ProfilesBackend(BackendTokens tokens, IHttpClientFactory cli
     public Task<HttpResponseMessage?> GetAsync(HttpContext context, Guid id) =>
         SendAsync(context, HttpMethod.Get, "/api/v1/profiles/" + id, null);
 
+    public Task<HttpResponseMessage?> GetMyAsync(HttpContext context) =>
+        SendAsync(context, HttpMethod.Get, "/api/v1/profiles/me", null);
+
     private async Task<HttpResponseMessage?> SendAsync(HttpContext context, HttpMethod method, string path, CreateProfileRequest? input)
     {
         var token = await tokens.GetAsync(context);

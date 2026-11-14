@@ -254,8 +254,9 @@ function CreateForm({
         style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
       >
         <div>
-          <label style={label}>Display name</label>
+          <label htmlFor="create-display-name" style={label}>Display name</label>
           <input
+            id="create-display-name"
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -267,10 +268,11 @@ function CreateForm({
         </div>
 
         <div>
-          <label style={label}>
+          <label htmlFor="create-bio" style={label}>
             Bio <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>— optional</span>
           </label>
           <textarea
+            id="create-bio"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             maxLength={500}
@@ -430,8 +432,9 @@ function EditForm({
         style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
       >
         <div>
-          <label style={label}>Display name</label>
+          <label htmlFor="edit-display-name" style={label}>Display name</label>
           <input
+            id="edit-display-name"
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -442,10 +445,11 @@ function EditForm({
         </div>
 
         <div>
-          <label style={label}>
+          <label htmlFor="edit-bio" style={label}>
             Bio <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>— optional</span>
           </label>
           <textarea
+            id="edit-bio"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             maxLength={500}

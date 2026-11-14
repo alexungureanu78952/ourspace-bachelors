@@ -254,7 +254,9 @@ function CreateForm({
         style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
       >
         <div>
-          <label htmlFor="create-display-name" style={label}>Display name</label>
+          <label htmlFor="create-display-name" style={label}>
+            Display name
+          </label>
           <input
             id="create-display-name"
             type="text"
@@ -432,7 +434,9 @@ function EditForm({
         style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
       >
         <div>
-          <label htmlFor="edit-display-name" style={label}>Display name</label>
+          <label htmlFor="edit-display-name" style={label}>
+            Display name
+          </label>
           <input
             id="edit-display-name"
             type="text"

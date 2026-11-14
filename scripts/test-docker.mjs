@@ -99,16 +99,29 @@ try {
     ).status(),
     400,
   );
+  // The SPA is a React app — wait for it to hydrate and show the create form.
+  await page.getByLabel('Display name', { exact: true }).waitFor();
   await page.getByLabel('Display name', { exact: true }).fill('Docker deployment profile');
   await page.getByRole('button', { name: 'Create profile', exact: true }).click();
-  await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
-  const profileId = await page.locator('#profile-id').innerText();
-  await page.getByLabel('Display name', { exact: true }).fill('Second profile');
-  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
-  await page.getByRole('alert').filter({ hasText: 'This account already has a profile' }).waitFor();
-  await page.getByLabel('Profile ID', { exact: true }).fill(profileId);
-  await page.getByRole('button', { name: 'Load profile', exact: true }).click();
-  await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
+  // After creation the SPA shows the profile view with an iframe whose src contains the profile ID.
+  const iframe = page.locator('iframe[src*="/bff/profiles/"]');
+  await iframe.waitFor();
+  const iframeSrc = (await iframe.getAttribute('src')) ?? '';
+  const profileIdMatch = iframeSrc.match(/\/bff\/profiles\/([^/]+)\/view/);
+  assert.ok(profileIdMatch, 'Profile iframe src must contain a profile ID.');
+  const profileId = profileIdMatch[1];
+  // Duplicate profile must be rejected; the SPA no longer shows a create form after success,
+  // so test the constraint directly via the API.
+  const { token: csrfToken } = await (await page.request.get(app + '/bff/csrf')).json();
+  assert.equal(
+    (
+      await page.request.post(app + '/bff/profiles', {
+        headers: { 'X-CSRF-TOKEN': csrfToken },
+        data: { displayName: 'Second profile' },
+      })
+    ).status(),
+    409,
+  );
   assert.equal(await page.getByText('Docker deployment profile', { exact: true }).count(), 1);
   const stored = await page.request.get(app + '/bff/profiles/' + profileId);
   assert.equal(stored.status(), 200, 'Profile must be stored through the container JWT validator.');

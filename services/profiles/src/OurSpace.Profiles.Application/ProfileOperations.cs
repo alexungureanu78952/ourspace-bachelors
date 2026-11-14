@@ -28,6 +28,16 @@ public sealed class ProfileOperations(IProfileStore store, ICurrentUser currentU
         return profile is null ? null : ToResponse(profile);
     }
 
+    public async Task<ProfileResponse?> UpdateMyAsync(string displayName, string bio, CancellationToken cancellationToken)
+    {
+        var ownerId = RequireUser();
+        var profile = await store.FindByOwnerAsync(ownerId, cancellationToken);
+        if (profile is null) return null;
+        profile.Update(displayName, bio);
+        await store.UpdateAsync(profile, cancellationToken);
+        return ToResponse(profile);
+    }
+
     private Guid RequireUser() =>
         currentUser.UserId is { } id && id != Guid.Empty
             ? id

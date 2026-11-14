@@ -17,7 +17,7 @@ public static class DemoEndpoints
         try
         {
             using var response = await profiles.GetAsync(context, id);
-            if (response is null) return Results.Redirect("/");
+            if (response is null) return Results.Redirect("/bff/demo");
             if (!response.IsSuccessStatusCode)
                 return Failure(context, antiforgery, settings.Value.Authority, response.StatusCode, profileId);
             var profile = await response.Content.ReadFromJsonAsync<DemoProfile>(context.RequestAborted);
@@ -37,12 +37,12 @@ public static class DemoEndpoints
         try
         {
             using var response = await profiles.CreateAsync(context, new CreateProfileRequest(form["displayName"].ToString(), form["bio"].ToString()));
-            if (response is null) return Results.Redirect("/");
+            if (response is null) return Results.Redirect("/bff/demo");
             if (!response.IsSuccessStatusCode)
                 return Failure(context, antiforgery, settings.Value.Authority, response.StatusCode);
             var profile = await response.Content.ReadFromJsonAsync<DemoProfile>(context.RequestAborted);
             return profile is null ? Failure(context, antiforgery, settings.Value.Authority, HttpStatusCode.BadGateway) :
-                Results.Redirect("/?profileId=" + profile.Id);
+                Results.Redirect("/bff/demo?profileId=" + profile.Id);
         }
         catch (Exception exception) when (IsServiceFailure(exception, context))
         {

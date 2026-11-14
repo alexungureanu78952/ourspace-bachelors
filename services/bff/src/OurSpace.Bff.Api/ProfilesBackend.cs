@@ -16,7 +16,10 @@ public sealed class ProfilesBackend(BackendTokens tokens, IHttpClientFactory cli
     public Task<HttpResponseMessage?> GetMyAsync(HttpContext context) =>
         SendAsync(context, HttpMethod.Get, "/api/v1/profiles/me", null);
 
-    private async Task<HttpResponseMessage?> SendAsync(HttpContext context, HttpMethod method, string path, CreateProfileRequest? input)
+    public Task<HttpResponseMessage?> UpdateMyAsync(HttpContext context, UpdateProfileRequest input) =>
+        SendAsync(context, HttpMethod.Put, "/api/v1/profiles/me", input);
+
+    private async Task<HttpResponseMessage?> SendAsync(HttpContext context, HttpMethod method, string path, object? input)
     {
         var token = await tokens.GetAsync(context);
         if (token is null)
@@ -26,7 +29,7 @@ public sealed class ProfilesBackend(BackendTokens tokens, IHttpClientFactory cli
         }
         using var request = new HttpRequestMessage(method, settings.Value.ProfilesOrigin + path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        if (input is not null) request.Content = JsonContent.Create(input);
+        if (input is not null) request.Content = JsonContent.Create(input, input.GetType());
         return await clients.CreateClient("profiles").SendAsync(request, context.RequestAborted);
     }
 }

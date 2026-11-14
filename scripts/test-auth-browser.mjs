@@ -86,6 +86,7 @@ try {
       JSON.stringify(navigation.slice(-12)) + '\n' + (await page.locator('body').innerText()),
     );
   });
+  await page.goto(bff + '/bff/demo');
   const demoName = 'Demo <img src=x onerror=alert(1)>';
   await page.getByLabel('Display name', { exact: true }).fill(demoName);
   await page.getByRole('button', { name: 'Create profile', exact: true }).click();
@@ -181,6 +182,7 @@ try {
       JSON.stringify(navigation.slice(-12)) + '\n' + (await page.locator('body').innerText()),
     );
   });
+  await page.goto(bff + '/bff/demo');
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await page.getByRole('heading', { name: 'Sign out of OurSpace' }).waitFor();
   await submit();

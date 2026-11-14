@@ -41,5 +41,25 @@ public sealed class Profile
         return new Profile(id, ownerId, normalized, normalizedBio, createdAt.ToUniversalTime());
     }
 
+    public void Update(string displayName, string bio)
+    {
+        ArgumentNullException.ThrowIfNull(displayName);
+        var normalized = displayName.Trim();
+        if (normalized.Length is 0 or > 200 || displayName.Any(char.IsControl))
+        {
+            throw new ProfileValidationException("Display name must contain 1–200 characters without control characters.");
+        }
+
+        ArgumentNullException.ThrowIfNull(bio);
+        var normalizedBio = bio.Trim();
+        if (normalizedBio.Length > 500 || bio.Any(c => char.IsControl(c) && c != '\n' && c != '\r'))
+        {
+            throw new ProfileValidationException("Bio must be at most 500 characters without control characters.");
+        }
+
+        DisplayName = normalized;
+        Bio = normalizedBio;
+    }
+
     public bool IsOwnedBy(Guid userId) => OwnerId == userId;
 }

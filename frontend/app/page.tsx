@@ -5,6 +5,7 @@ import {
   getMe,
   getMyProfile,
   createProfile,
+  updateProfile,
   signOut,
   type Profile,
   type CurrentUser,
@@ -14,7 +15,8 @@ type AppState =
   | { kind: 'loading' }
   | { kind: 'unauthenticated' }
   | { kind: 'creating'; user: CurrentUser; error?: string }
-  | { kind: 'profile'; user: CurrentUser; profile: Profile };
+  | { kind: 'profile'; user: CurrentUser; profile: Profile }
+  | { kind: 'editing'; user: CurrentUser; profile: Profile };
 
 export default function Home() {
   const [state, setState] = useState<AppState>({ kind: 'loading' });
@@ -40,9 +42,22 @@ export default function Home() {
         <CreateForm onCreated={(p) => handleCreated(state.user, p)} initialError={state.error} />
       </Shell>
     );
+  if (state.kind === 'editing')
+    return (
+      <Shell user={state.user}>
+        <EditForm
+          profile={state.profile}
+          onSaved={(p) => setState({ kind: 'profile', user: state.user, profile: p })}
+          onCancel={() => setState({ kind: 'profile', user: state.user, profile: state.profile })}
+        />
+      </Shell>
+    );
   return (
     <Shell user={state.user}>
-      <ProfileView profile={state.profile} />
+      <ProfileView
+        profile={state.profile}
+        onEdit={() => setState({ kind: 'editing', user: state.user, profile: state.profile })}
+      />
     </Shell>
   );
 }
@@ -289,7 +304,7 @@ function CreateForm({
 
 // ── Profile view ──────────────────────────────────────────────────────────────
 
-function ProfileView({ profile }: { profile: Profile }) {
+function ProfileView({ profile, onEdit }: { profile: Profile; onEdit: () => void }) {
   const createdAt = new Date(profile.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -314,6 +329,9 @@ function ProfileView({ profile }: { profile: Profile }) {
             Created {createdAt}
           </p>
         </div>
+        <button onClick={onEdit} style={ghostBtn}>
+          Edit
+        </button>
       </div>
 
       <div
@@ -347,6 +365,117 @@ function ProfileView({ profile }: { profile: Profile }) {
         <Field label="Display name" value={profile.displayName} large />
         {profile.bio && <Field label="Bio" value={profile.bio} />}
       </div>
+    </div>
+  );
+}
+
+// ── Edit form ─────────────────────────────────────────────────────────────────
+
+function EditForm({
+  profile,
+  onSaved,
+  onCancel,
+}: {
+  profile: Profile;
+  onSaved: (p: Profile) => void;
+  onCancel: () => void;
+}) {
+  const [displayName, setDisplayName] = useState(profile.displayName);
+  const [bio, setBio] = useState(profile.bio);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!displayName.trim()) {
+      setError('Display name is required.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      onSaved(await updateProfile(displayName.trim(), bio));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Edit your profile</h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 36, lineHeight: 1.5 }}>
+        Changes take effect immediately.
+      </p>
+
+      {error && (
+        <div
+          style={{
+            background: 'var(--error-bg)',
+            border: '1px solid var(--error-border)',
+            color: 'var(--error-text)',
+            borderRadius: 8,
+            padding: '12px 16px',
+            marginBottom: 28,
+            fontSize: 14,
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
+      >
+        <div>
+          <label style={label}>Display name</label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            maxLength={200}
+            style={input}
+            required
+          />
+        </div>
+
+        <div>
+          <label style={label}>
+            Bio <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>— optional</span>
+          </label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            maxLength={500}
+            rows={5}
+            style={{ ...input, resize: 'vertical', minHeight: 110 }}
+          />
+          <div
+            style={{ textAlign: 'right', fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}
+          >
+            {bio.length} / 500
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              ...accentBtn,
+              opacity: loading ? 0.65 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {loading ? 'Saving…' : 'Save changes'}
+          </button>
+          <button type="button" onClick={onCancel} style={ghostBtn} disabled={loading}>
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 name: Local Docker deployment
 on:
   push:
+    branches: [master]
   pull_request:
+    branches: [master]
 permissions:
   contents: read
 jobs:
@@ -13,6 +15,8 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
       - uses: actions/setup-node@v7
         with:
           node-version: '24'

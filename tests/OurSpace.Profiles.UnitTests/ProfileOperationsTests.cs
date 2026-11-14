@@ -42,6 +42,46 @@ public sealed class ProfileOperationsTests
         Assert.Empty(store.Items);
     }
 
+    [Fact]
+    public async Task UpdateChangesNameAndBio()
+    {
+        var owner = Guid.NewGuid();
+        var store = new MemoryStore();
+        var operations = new ProfileOperations(store, new FakeUser(owner), TimeProvider.System);
+        await operations.CreateAsync("Original", "old bio", CancellationToken.None);
+
+        var result = await operations.UpdateMyAsync("  Updated  ", "new bio", CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal("Updated", result.DisplayName);
+        Assert.Equal("new bio", result.Bio);
+    }
+
+    [Fact]
+    public async Task UpdateReturnsNullWhenProfileDoesNotExist()
+    {
+        var store = new MemoryStore();
+        var operations = new ProfileOperations(store, new FakeUser(Guid.NewGuid()), TimeProvider.System);
+
+        var result = await operations.UpdateMyAsync("Name", string.Empty, CancellationToken.None);
+
+        Assert.Null(result);
+        Assert.Equal(0, store.UpdateCount);
+    }
+
+    [Fact]
+    public async Task UpdateRejectsInvalidName()
+    {
+        var owner = Guid.NewGuid();
+        var store = new MemoryStore();
+        var operations = new ProfileOperations(store, new FakeUser(owner), TimeProvider.System);
+        await operations.CreateAsync("Original", string.Empty, CancellationToken.None);
+
+        await Assert.ThrowsAsync<ProfileValidationException>(() =>
+            operations.UpdateMyAsync(string.Empty, string.Empty, CancellationToken.None));
+        Assert.Equal(0, store.UpdateCount);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -67,6 +107,7 @@ public sealed class ProfileOperationsTests
     {
         public List<Profile> Items { get; } = [];
         public int ReadCount { get; private set; }
+        public int UpdateCount { get; private set; }
 
         public Task AddAsync(Profile profile, CancellationToken cancellationToken)
         {
@@ -84,6 +125,12 @@ public sealed class ProfileOperationsTests
         {
             ReadCount++;
             return Task.FromResult(Items.SingleOrDefault(profile => profile.OwnerId == ownerId));
+        }
+
+        public Task UpdateAsync(Profile profile, CancellationToken cancellationToken)
+        {
+            UpdateCount++;
+            return Task.CompletedTask;
         }
     }
 }

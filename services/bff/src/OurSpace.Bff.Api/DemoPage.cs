@@ -77,9 +77,12 @@ public static class DemoPage
             {
                 var viewUrl = "/bff/profiles/" + profile.Id + "/view";
                 html.Append("<div class=\"card\"><h2>Your profile</h2>")
+                    .Append("<p role=\"status\">Profile loaded.</p>")
+                    .Append("<p>").Append(Encode(profile.DisplayName)).Append("</p>")
                     .Append("<iframe class=\"profile-frame\" src=\"").Append(Encode(viewUrl))
                     .Append("\" sandbox=\"allow-scripts\" title=\"Profile preview\"></iframe>")
                     .Append("<div class=\"meta\">")
+                    .Append("<span id=\"profile-id\" style=\"display:none\">").Append(profile.Id).Append("</span>")
                     .Append("<span class=\"profile-id\">ID: ").Append(profile.Id).Append("</span>")
                     .Append("<span>Owner: ").Append(profile.OwnerId).Append("</span>")
                     .Append("<span>Created: ").Append(Encode(profile.CreatedAt.UtcDateTime.ToString("u", CultureInfo.InvariantCulture))).Append("</span>")
@@ -96,7 +99,7 @@ public static class DemoPage
 
             html.Append("<div class=\"card\"><h2>Load a profile by ID</h2>")
                 .Append("<p style=\"font-size:0.875rem;color:#a7a9be;margin-bottom:16px\">Only the profile's owner can load it.</p>")
-                .Append("<form method=\"get\" action=\"/\">")
+                .Append("<form method=\"get\" action=\"/bff/demo\">")
                 .Append("<label for=\"lookup-id\">Profile ID</label>")
                 .Append("<input id=\"lookup-id\" name=\"profileId\" type=\"text\" required maxlength=\"36\" value=\"")
                 .Append(Encode(profile?.Id.ToString() ?? profileId)).Append("\">")

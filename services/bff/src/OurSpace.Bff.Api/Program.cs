@@ -103,6 +103,7 @@ app.Use(async (context, next) =>
     context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; font-src 'self'; form-action 'self' " + authority + "; frame-ancestors 'none'; base-uri 'none'";
     await next(context);
 });
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -135,6 +136,8 @@ api.MapPost("/profiles", async (CreateProfileRequest input, HttpContext context,
     await Forward(await profiles.CreateAsync(context, input), context.RequestAborted));
 api.MapGet("/profiles/me", async (HttpContext context, ProfilesBackend profiles) =>
     await Forward(await profiles.GetMyAsync(context), context.RequestAborted));
+api.MapPut("/profiles/me", async (UpdateProfileRequest input, HttpContext context, ProfilesBackend profiles) =>
+    await Forward(await profiles.UpdateMyAsync(context, input), context.RequestAborted));
 api.MapGet("/profiles/{id:guid}", async (Guid id, HttpContext context, ProfilesBackend profiles) =>
     await Forward(await profiles.GetAsync(context, id), context.RequestAborted));
 api.MapGet("/profiles/{id:guid}/view", async (Guid id, HttpContext context, ProfilesBackend profiles, ProfileArtifactService artifactService) =>
@@ -154,6 +157,7 @@ api.MapGet("/profiles/{id:guid}/view", async (Guid id, HttpContext context, Prof
     context.Response.Headers.ContentSecurityPolicy = csp;
     return Results.Content(html, "text/html; charset=utf-8");
 });
+app.MapGet("/bff/demo", DemoEndpoints.LoadAsync).AllowAnonymous();
 app.MapFallbackToFile("index.html").AllowAnonymous();
 app.Run();
 

@@ -47,6 +47,21 @@ export async function createProfile(displayName: string, bio: string): Promise<P
   return res.json() as Promise<Profile>;
 }
 
+export async function updateProfile(displayName: string, bio: string): Promise<Profile> {
+  const csrf = await getCsrf();
+  const res = await fetch('/bff/profiles/me', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+    body: JSON.stringify({ displayName, bio }),
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { title?: string };
+    throw new Error(err?.title ?? 'Failed to update profile.');
+  }
+  return res.json() as Promise<Profile>;
+}
+
 export async function signOut(): Promise<void> {
   // Sign-out must be a real browser navigation so the BFF can redirect through
   // the OIDC end-session endpoint and clear the identity server session.

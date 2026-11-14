@@ -158,7 +158,17 @@ api.MapGet("/profiles/{id:guid}/view", async (Guid id, HttpContext context, Prof
     return Results.Content(html, "text/html; charset=utf-8");
 });
 app.MapGet("/bff/demo", DemoEndpoints.LoadAsync).AllowAnonymous();
-app.MapFallbackToFile("index.html").AllowAnonymous();
+var webRoot = app.Environment.WebRootPath ?? string.Empty;
+app.MapFallback(async (HttpContext ctx) =>
+{
+    // Next.js static export generates flat files: profile.html, create.html, edit.html.
+    // Serve the route-specific HTML so React hydrates with matching pre-rendered content.
+    var segment = ctx.Request.Path.Value?.TrimStart('/').Split('/')[0] ?? string.Empty;
+    var routeHtml = !string.IsNullOrEmpty(segment) ? Path.Combine(webRoot, segment + ".html") : null;
+    var filePath = routeHtml != null && File.Exists(routeHtml) ? routeHtml : Path.Combine(webRoot, "index.html");
+    ctx.Response.ContentType = "text/html; charset=utf-8";
+    await ctx.Response.SendFileAsync(filePath);
+}).AllowAnonymous();
 app.Run();
 
 static bool SecureOrigin(string value) => Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.GetLeftPart(UriPartial.Authority) == value && uri.UserInfo.Length == 0;

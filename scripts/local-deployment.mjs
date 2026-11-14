@@ -139,4 +139,9 @@ if (action === 'up') {
   console.log(
     'All three dumps restored and queried in isolated scratch databases; running databases were untouched.',
   );
-} else throw new Error('Use up, stop, status, backup or verify-backup.');
+} else if (action === 'rebuild') {
+  const services = process.argv.slice(3);
+  if (services.length === 0) throw new Error('Specify one or more services: npm run local:rebuild bff identity profiles');
+  docker('up', '-d', '--build', '--no-deps', '--wait', '--wait-timeout', '180', ...services);
+  console.log('Rebuilt: ' + services.join(', '));
+} else throw new Error('Use up, rebuild, stop, status, backup or verify-backup.');

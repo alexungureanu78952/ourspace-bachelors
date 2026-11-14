@@ -101,7 +101,7 @@ app.Use(async (context, next) =>
     context.Response.Headers["Referrer-Policy"] = "no-referrer";
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     var bffOrigin = context.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<IdentityProtocolSettings>>().Value.BffOrigin;
-    context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; form-action 'self' " + bffOrigin + "; frame-ancestors 'none'; base-uri 'none'";
+    context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; style-src 'unsafe-inline'; form-action 'self' " + bffOrigin + "; frame-ancestors 'none'; base-uri 'none'";
     await next(context);
 });
 app.UseRateLimiter();

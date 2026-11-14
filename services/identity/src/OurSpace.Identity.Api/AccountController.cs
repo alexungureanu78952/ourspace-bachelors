@@ -50,22 +50,32 @@ public sealed class AccountController(
     IOptions<IdentityProtocolSettings> settings,
     IOpenIddictAuthorizationManager authorizations) : Controller
 {
-    private const string Sent = "If the account is eligible, an email has been sent. Check your inbox.";
+    private const string Sent = "Check your inbox — if the account is eligible an email is on its way.";
 
     [HttpGet("register")]
-    public IActionResult Register() => Page("Create account", [("Email", "email", ""), ("Password", "password", "")]);
+    public IActionResult Register() =>
+        Page("Create account", [("Email", "email", ""), ("Password", "password", "")],
+            sub: "Pick an email and a password of 12–128 characters.",
+            linksHtml: "Already have an account? <a href=\"/account/login\">Sign in</a>");
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromForm] RegisterInput input, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return Page("Create account", [("Email", "email", ""), ("Password", "password", "")], "Enter a valid email and a password of 12?128 characters.");
+        if (!ModelState.IsValid)
+            return Page("Create account", [("Email", "email", ""), ("Password", "password", "")],
+                message: "Enter a valid email and a password of 12–128 characters.", isError: true,
+                linksHtml: "Already have an account? <a href=\"/account/login\">Sign in</a>");
+
         var address = input.Email.Trim();
         var candidate = new IdentityUserAccount { Id = Guid.NewGuid(), UserName = address, Email = address };
         foreach (var validator in users.PasswordValidators)
         {
             if (!(await validator.ValidateAsync(users, candidate, input.Password)).Succeeded)
-                return Page("Create account", [("Email", "email", ""), ("Password", "password", "")], "Use 12?128 characters with upper/lowercase letters, a number and a symbol.");
+                return Page("Create account", [("Email", "email", ""), ("Password", "password", "")],
+                    message: "Use 12–128 characters with upper/lowercase letters, a number and a symbol.", isError: true,
+                    linksHtml: "Already have an account? <a href=\"/account/login\">Sign in</a>");
         }
+
         var account = await users.FindByEmailAsync(address);
         if (account is null && (await users.CreateAsync(candidate, input.Password)).Succeeded) account = candidate;
         if (account is { EmailConfirmed: false } && await users.CheckPasswordAsync(account, input.Password))
@@ -75,26 +85,33 @@ public sealed class AccountController(
                 Link("/account/confirm", account.Id, token), cancellationToken);
         }
 
-        return Page("Check your email", [], Sent);
+        return Page("Check your email", [],
+            message: Sent,
+            linksHtml: "Back to <a href=\"/account/login\">sign in</a>");
     }
 
     [HttpGet("confirm")]
     public IActionResult Confirm([FromQuery] string userId, [FromQuery] string token) =>
-        Page("Confirm email", [("UserId", "hidden", userId), ("Token", "hidden", token)]);
+        Page("Confirm email", [("UserId", "hidden", userId), ("Token", "hidden", token)],
+            sub: "Click Continue to confirm your email address.");
 
     [HttpPost("confirm")]
     public async Task<IActionResult> Confirm([FromForm] TokenInput input)
     {
         var account = ModelState.IsValid ? await users.FindByIdAsync(input.UserId) : null;
         var success = account is not null && !account.EmailConfirmed && (await users.ConfirmEmailAsync(account, input.Token)).Succeeded;
-        return Page("Email confirmation", [], success ? "Email confirmed. You can now sign in." : "This confirmation link is invalid or has already been used.");
+        return Page("Email confirmed", [],
+            message: success ? "Your email is confirmed. You can now sign in." : "This confirmation link is invalid or has already been used.",
+            isError: !success,
+            linksHtml: "<a href=\"/account/login\">Sign in</a>");
     }
 
     [HttpGet("login")]
     public IActionResult Login([FromQuery] string returnUrl = "/")
     {
         if (!Url.IsLocalUrl(returnUrl)) return BadRequest();
-        return Page("Sign in", [("Email", "email", ""), ("Password", "password", ""), ("ReturnUrl", "hidden", returnUrl)]);
+        return Page("Sign in", [("Email", "email", ""), ("Password", "password", ""), ("ReturnUrl", "hidden", returnUrl)],
+            linksHtml: "No account yet? <a href=\"/account/register\">Create one</a><br>Forgot your password? <a href=\"/account/forgot\">Reset it</a>");
     }
 
     [HttpPost("login")]
@@ -104,7 +121,6 @@ public sealed class AccountController(
         var account = ModelState.IsValid ? await users.FindByEmailAsync(input.Email.Trim()) : null;
         if (account is not null && (await signIn.PasswordSignInAsync(account, input.Password, false, true)).Succeeded)
         {
-            // The user just explicitly reauthenticated. Avoid repeating freshness challenges.
             var path = input.ReturnUrl.Split('?', 2)[0];
             var query = QueryHelpers.ParseQuery(new Uri("https://local.test" + input.ReturnUrl).Query)
                 .Where(pair => pair.Key is not ("prompt" or "max_age"));
@@ -112,11 +128,16 @@ public sealed class AccountController(
             return LocalRedirect(destination);
         }
 
-        return Page("Sign in", [("Email", "email", ""), ("Password", "password", ""), ("ReturnUrl", "hidden", input.ReturnUrl)], "Sign-in failed. Check your credentials, email confirmation or account availability.");
+        return Page("Sign in", [("Email", "email", input.Email), ("Password", "password", ""), ("ReturnUrl", "hidden", input.ReturnUrl)],
+            message: "Sign-in failed. Check your credentials or confirm your email first.", isError: true,
+            linksHtml: "No account yet? <a href=\"/account/register\">Create one</a><br>Forgot your password? <a href=\"/account/forgot\">Reset it</a>");
     }
 
     [HttpGet("forgot")]
-    public IActionResult Forgot() => Page("Reset password", [("Email", "email", "")]);
+    public IActionResult Forgot() =>
+        Page("Reset password", [("Email", "email", "")],
+            sub: "Enter your email and we'll send a reset link.",
+            linksHtml: "Remembered it? <a href=\"/account/login\">Sign in</a>");
 
     [HttpPost("forgot")]
     public async Task<IActionResult> Forgot([FromForm] RecoveryInput input, CancellationToken cancellationToken)
@@ -128,12 +149,15 @@ public sealed class AccountController(
                 Link("/account/reset", account.Id, await users.GeneratePasswordResetTokenAsync(account)), cancellationToken);
         }
 
-        return Page("Check your email", [], Sent);
+        return Page("Check your email", [],
+            message: Sent,
+            linksHtml: "Back to <a href=\"/account/login\">sign in</a>");
     }
 
     [HttpGet("reset")]
     public IActionResult Reset([FromQuery] string userId, [FromQuery] string token) =>
-        Page("Choose a new password", [("UserId", "hidden", userId), ("Token", "hidden", token), ("Password", "password", "")]);
+        Page("Choose a new password", [("UserId", "hidden", userId), ("Token", "hidden", token), ("Password", "password", "")],
+            sub: "Pick a new password of 12–128 characters.");
 
     [HttpPost("reset")]
     public async Task<IActionResult> Reset([FromForm] TokenInput input)
@@ -141,13 +165,17 @@ public sealed class AccountController(
         var account = ModelState.IsValid && input.Password is { Length: >= 12 and <= 128 } ? await users.FindByIdAsync(input.UserId) : null;
         var success = account is not null && account.EmailConfirmed && (await users.ResetPasswordAsync(account, input.Token, input.Password!)).Succeeded;
         if (success) await authorizations.RevokeBySubjectAsync(account!.Id.ToString());
-        return Page("Password reset", [], success ? "Password changed. Sign in again." : "This reset request is invalid.");
+        return Page("Password reset", [],
+            message: success ? "Password changed. You can now sign in." : "This reset link is invalid or has already been used.",
+            isError: !success,
+            linksHtml: "<a href=\"/account/login\">Sign in</a>");
     }
 
     private string Link(string path, Guid userId, string token) =>
         QueryHelpers.AddQueryString(settings.Value.Issuer.TrimEnd('/') + path,
             new Dictionary<string, string?> { ["userId"] = userId.ToString(), ["token"] = token });
 
-    private ContentResult Page(string title, IEnumerable<(string Name, string Type, string Value)> fields, string? message = null) =>
-        Content(AccountPage.Form(HttpContext, antiforgery, title, fields, message), "text/html; charset=utf-8");
+    private ContentResult Page(string title, IEnumerable<(string Name, string Type, string Value)> fields,
+        string? message = null, bool isError = false, string? sub = null, string? linksHtml = null) =>
+        Content(AccountPage.Form(HttpContext, antiforgery, title, fields, message, isError, sub, linksHtml), "text/html; charset=utf-8");
 }

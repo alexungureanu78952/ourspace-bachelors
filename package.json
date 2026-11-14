@@ -21,6 +21,7 @@
     "check:backend": "node scripts/check-backend.mjs",
     "check:all": "npm run check && npm run check:backend",
     "local:up": "node scripts/local-deployment.mjs up",
+    "local:rebuild": "node scripts/local-deployment.mjs rebuild",
     "local:stop": "node scripts/local-deployment.mjs stop",
     "local:status": "node scripts/local-deployment.mjs status",
     "local:backup": "node scripts/local-deployment.mjs backup",

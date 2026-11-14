@@ -1,4 +1,6 @@
 node_modules/
+frontend/.next/
+frontend/out/
 runtime/profile-spike/artifacts/
 runtime/profile-spike/test-results/
 

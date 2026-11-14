@@ -32,14 +32,14 @@ public static class AccountPage
         var e = HtmlEncoder.Default;
         var html = new StringBuilder();
         html.Append("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>")
-            .Append(e.Encode(title)).Append(" · OurSpace</title><style>").Append(Styles).Append("</style></head><body><div role=\"status\" class=\"card\">");
+            .Append(e.Encode(title)).Append(" · OurSpace</title><style>").Append(Styles).Append("</style></head><body><div class=\"card\">");
         html.Append("<span class=\"logo\">✦ OurSpace</span>");
         html.Append("<h1>").Append(e.Encode(title)).Append("</h1>");
         if (sub is not null) html.Append("<p class=\"sub\">").Append(e.Encode(sub)).Append("</p>");
         if (message is not null)
         {
             var cls = isError ? "error" : "notice";
-            html.Append("<div class=\"").Append(cls).Append("\">").Append(e.Encode(message)).Append("</div>");
+            html.Append("<p role=\"status\" class=\"").Append(cls).Append("\">").Append(e.Encode(message)).Append("</p>");
         }
 
         html.Append("<form method=\"post\"><input type=\"hidden\" name=\"")

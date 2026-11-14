@@ -101,7 +101,7 @@ public sealed class AccountController(
         var account = ModelState.IsValid ? await users.FindByIdAsync(input.UserId) : null;
         var success = account is not null && !account.EmailConfirmed && (await users.ConfirmEmailAsync(account, input.Token)).Succeeded;
         return Page("Email confirmed", [],
-            message: success ? "Your email is confirmed. You can now sign in." : "This confirmation link is invalid or has already been used.",
+            message: success ? "Email confirmed. You can now sign in." : "This confirmation link is invalid or has already been used.",
             isError: !success,
             linksHtml: "<a href=\"/account/login\">Sign in</a>");
     }
@@ -166,7 +166,7 @@ public sealed class AccountController(
         var success = account is not null && account.EmailConfirmed && (await users.ResetPasswordAsync(account, input.Token, input.Password!)).Succeeded;
         if (success) await authorizations.RevokeBySubjectAsync(account!.Id.ToString());
         return Page("Password reset", [],
-            message: success ? "Password changed. You can now sign in." : "This reset link is invalid or has already been used.",
+            message: success ? "Password changed. You can now sign in." : "This reset request is invalid.",
             isError: !success,
             linksHtml: "<a href=\"/account/login\">Sign in</a>");
     }

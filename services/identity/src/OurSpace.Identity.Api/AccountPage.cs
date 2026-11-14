@@ -39,7 +39,7 @@ public static class AccountPage
         if (message is not null)
         {
             var cls = isError ? "error" : "notice";
-            html.Append("<div class=\"").Append(cls).Append("\">").Append(e.Encode(message)).Append("</div>");
+            html.Append("<div role=\"status\" class=\"").Append(cls).Append("\">").Append(e.Encode(message)).Append("</div>");
         }
 
         html.Append("<form method=\"post\"><input type=\"hidden\" name=\"")

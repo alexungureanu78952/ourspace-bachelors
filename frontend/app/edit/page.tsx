@@ -3,7 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMyProfile, updateProfile, type Profile } from '../../lib/api';
-import { useAuth, Shell, Spinner, ErrorBanner, accentBtn, ghostBtn, input, label } from '../../components/shared';
+import {
+  useAuth,
+  Shell,
+  Spinner,
+  ErrorBanner,
+  accentBtn,
+  ghostBtn,
+  input,
+  label,
+} from '../../components/shared';
 
 export default function EditPage() {
   const auth = useAuth();
@@ -55,7 +64,10 @@ function EditForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!displayName.trim()) { setError('Display name is required.'); return; }
+    if (!displayName.trim()) {
+      setError('Display name is required.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -77,7 +89,10 @@ function EditForm({
 
       {error && <ErrorBanner message={error} />}
 
-      <form onSubmit={(e) => void handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
+      >
         <div>
           <label htmlFor="edit-display-name" style={label}>
             Display name
@@ -105,7 +120,9 @@ function EditForm({
             rows={5}
             style={{ ...input, resize: 'vertical', minHeight: 110 }}
           />
-          <div style={{ textAlign: 'right', fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
+          <div
+            style={{ textAlign: 'right', fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}
+          >
             {bio.length} / 500
           </div>
         </div>
@@ -114,7 +131,11 @@ function EditForm({
           <button
             type="submit"
             disabled={loading}
-            style={{ ...accentBtn, opacity: loading ? 0.65 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{
+              ...accentBtn,
+              opacity: loading ? 0.65 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer',
+            }}
           >
             {loading ? 'Saving…' : 'Save changes'}
           </button>

@@ -3,7 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMyProfile, createProfile } from '../../lib/api';
-import { useAuth, Shell, Spinner, ErrorBanner, accentBtn, input, label } from '../../components/shared';
+import {
+  useAuth,
+  Shell,
+  Spinner,
+  ErrorBanner,
+  accentBtn,
+  input,
+  label,
+} from '../../components/shared';
 
 export default function CreatePage() {
   const auth = useAuth();
@@ -43,7 +51,10 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!displayName.trim()) { setError('Display name is required.'); return; }
+    if (!displayName.trim()) {
+      setError('Display name is required.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -65,7 +76,10 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
       {error && <ErrorBanner message={error} />}
 
-      <form onSubmit={(e) => void handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
+      >
         <div>
           <label htmlFor="create-display-name" style={label}>
             Display name
@@ -95,7 +109,9 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             placeholder="Tell people a bit about yourself…"
             style={{ ...input, resize: 'vertical', minHeight: 110 }}
           />
-          <div style={{ textAlign: 'right', fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
+          <div
+            style={{ textAlign: 'right', fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}
+          >
             {bio.length} / 500
           </div>
         </div>
@@ -103,7 +119,12 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
         <button
           type="submit"
           disabled={loading}
-          style={{ ...accentBtn, opacity: loading ? 0.65 : 1, cursor: loading ? 'not-allowed' : 'pointer', alignSelf: 'flex-start' }}
+          style={{
+            ...accentBtn,
+            opacity: loading ? 0.65 : 1,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            alignSelf: 'flex-start',
+          }}
         >
           {loading ? 'Creating…' : 'Create profile'}
         </button>

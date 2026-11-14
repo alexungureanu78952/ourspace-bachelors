@@ -7,9 +7,7 @@ import { useEffect, useState } from 'react';
 // ── Auth guard hook ───────────────────────────────────────────────────────────
 
 export type AuthState =
-  | { kind: 'loading' }
-  | { kind: 'unauthenticated' }
-  | { kind: 'ready'; user: CurrentUser };
+  { kind: 'loading' } | { kind: 'unauthenticated' } | { kind: 'ready'; user: CurrentUser };
 
 export function useAuth(): AuthState {
   const [state, setState] = useState<AuthState>({ kind: 'loading' });
@@ -36,7 +34,14 @@ export function useAuth(): AuthState {
 export function Shell({ user, children }: { user: CurrentUser; children: React.ReactNode }) {
   const displayName = user.name ?? user.userId.slice(0, 8) + '…';
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <header
         style={{
           borderBottom: '1px solid var(--border)',
@@ -48,7 +53,9 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.06em' }}>
+        <span
+          style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.06em' }}
+        >
           ✦ OurSpace
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>

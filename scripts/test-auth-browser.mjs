@@ -111,7 +111,10 @@ try {
     409,
   );
   // Non-existent profile → 404.
-  assert.equal((await page.request.get(bff + '/bff/profiles/' + crypto.randomUUID())).status(), 404);
+  assert.equal(
+    (await page.request.get(bff + '/bff/profiles/' + crypto.randomUUID())).status(),
+    404,
+  );
   // Whitespace-only display name → 400.
   assert.equal(
     (

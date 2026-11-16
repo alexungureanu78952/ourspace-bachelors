@@ -15,6 +15,9 @@ export default [
     ],
   },
   { ...js.configs.recommended, files: ['**/*.mjs'], languageOptions: { globals: globals.node } },
+  // test-auth-browser.mjs runs page.evaluate() callbacks in a browser context;
+  // allow browser globals (document, window, …) so ESLint doesn't flag them.
+  { files: ['scripts/test-auth-browser.mjs'], languageOptions: { globals: { ...globals.node, ...globals.browser } } },
   ...tseslint.configs.recommendedTypeChecked.map((config) => ({
     ...config,
     files: ['runtime/**/*.ts'],

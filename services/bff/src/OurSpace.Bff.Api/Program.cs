@@ -70,6 +70,14 @@ builder.Services.AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.Authenti
         options.Scope.Add("profile");
         options.Scope.Add("offline_access");
         options.Scope.Add("ourspace.profiles");
+        options.Events.OnRedirectToIdentityProvider = context =>
+        {
+            // AuthenticationProperties.Parameters are not forwarded to the OIDC redirect
+            // automatically — copy ui_locales into the protocol message so Identity sees it.
+            if (context.Properties.Parameters.TryGetValue("ui_locales", out var locale) && locale is string { Length: > 0 } localeStr)
+                context.ProtocolMessage.SetParameter("ui_locales", localeStr);
+            return Task.CompletedTask;
+        };
         options.Events.OnTicketReceived = context =>
         {
             context.Properties!.ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30);

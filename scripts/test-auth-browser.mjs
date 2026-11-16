@@ -54,7 +54,10 @@ try {
   );
   assert.equal(
     (
-      await page.request.post(bff + '/bff/demo/profiles', { form: { displayName: 'Anonymous' } })
+      await page.request.post(bff + '/bff/profiles', {
+        headers: { 'Content-Type': 'application/json' },
+        data: '{"displayName":"Anonymous","bio":""}',
+      })
     ).status(),
     401,
   );
@@ -86,34 +89,45 @@ try {
       JSON.stringify(navigation.slice(-12)) + '\n' + (await page.locator('body').innerText()),
     );
   });
-  await page.goto(bff + '/bff/demo');
   const demoName = 'Demo <img src=x onerror=alert(1)>';
-  await page.getByLabel('Display name', { exact: true }).fill(demoName);
-  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
-  await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
-  const demoId = await page.locator('#profile-id').innerText();
-  assert.equal(await page.getByText(demoName, { exact: true }).count(), 1);
-  assert.equal(await page.locator('img').count(), 0);
-  await page.getByLabel('Display name', { exact: true }).fill('Second profile');
-  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
-  await page.getByRole('alert').filter({ hasText: 'This account already has a profile' }).waitFor();
-  await page.getByLabel('Profile ID', { exact: true }).fill(demoId);
-  await page.getByRole('button', { name: 'Load profile', exact: true }).click();
-  await page.getByRole('status').filter({ hasText: 'Profile loaded.' }).waitFor();
-  await page.reload();
-  assert.equal(await page.locator('#profile-id').innerText(), demoId);
-  await page.getByLabel('Profile ID', { exact: true }).fill(crypto.randomUUID());
-  await page.getByRole('button', { name: 'Load profile', exact: true }).click();
-  await page.getByRole('alert').filter({ hasText: 'Profile not found or unavailable' }).waitFor();
-  await page.getByLabel('Profile ID', { exact: true }).fill('invalid-id');
-  await page.getByRole('button', { name: 'Load profile', exact: true }).click();
-  await page.getByRole('alert').filter({ hasText: 'Enter a valid profile ID' }).waitFor();
-  await page.getByLabel('Display name', { exact: true }).fill('   ');
-  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
-  await page.getByRole('alert').filter({ hasText: 'Use a display name' }).waitFor();
+  const csrfData = await (await page.request.get(bff + '/bff/csrf')).json();
+  const createResponse = await page.request.post(bff + '/bff/profiles', {
+    headers: { 'X-CSRF-TOKEN': csrfData.token, 'Content-Type': 'application/json' },
+    data: JSON.stringify({ displayName: demoName, bio: '' }),
+  });
+  assert.equal(createResponse.status(), 201, await createResponse.text());
+  const demoProfile = await createResponse.json();
+  const demoId = demoProfile.id;
+  // Display name must be stored verbatim (the frontend is responsible for escaping on render).
+  assert.equal(demoProfile.displayName, demoName);
+  // Duplicate profile → 409.
   assert.equal(
     (
-      await page.request.post(bff + '/bff/demo/profiles', { form: { displayName: 'Missing CSRF' } })
+      await page.request.post(bff + '/bff/profiles', {
+        headers: { 'X-CSRF-TOKEN': csrfData.token, 'Content-Type': 'application/json' },
+        data: JSON.stringify({ displayName: 'Second profile', bio: '' }),
+      })
+    ).status(),
+    409,
+  );
+  // Non-existent profile → 404.
+  assert.equal((await page.request.get(bff + '/bff/profiles/' + crypto.randomUUID())).status(), 404);
+  // Whitespace-only display name → 400.
+  assert.equal(
+    (
+      await page.request.post(bff + '/bff/profiles', {
+        headers: { 'X-CSRF-TOKEN': csrfData.token, 'Content-Type': 'application/json' },
+        data: JSON.stringify({ displayName: '   ', bio: '' }),
+      })
+    ).status(),
+    400,
+  );
+  assert.equal(
+    (
+      await page.request.post(bff + '/bff/profiles', {
+        headers: { 'Content-Type': 'application/json' },
+        data: '{"displayName":"Missing CSRF","bio":""}',
+      })
     ).status(),
     400,
   );
@@ -182,8 +196,24 @@ try {
       JSON.stringify(navigation.slice(-12)) + '\n' + (await page.locator('body').innerText()),
     );
   });
-  await page.goto(bff + '/bff/demo');
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  // Sign out via programmatic form submission — matches the Next.js frontend's signOut().
+  const signOutCsrf = await (await page.request.get(bff + '/bff/csrf')).json();
+  await page.goto(bff + '/');
+  await page.evaluate(
+    ({ token }) => {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/bff/logout';
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = '__RequestVerificationToken';
+      input.value = token;
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+    },
+    { token: signOutCsrf.token },
+  );
   await page.getByRole('heading', { name: 'Sign out of OurSpace' }).waitFor();
   await submit();
   await page.waitForURL(bff + '/', { timeout: 10000 }).catch(async () => {

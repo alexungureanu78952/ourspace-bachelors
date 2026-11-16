@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 import { getMe, signOut, type CurrentUser } from '../lib/api';
 import { useEffect, useState } from 'react';
+import { useTranslation, type Locale } from '../lib/i18n';
 
 // ── Auth guard hook ───────────────────────────────────────────────────────────
 
@@ -29,9 +30,41 @@ export function useAuth(): AuthState {
   return state;
 }
 
+// ── Language switcher ─────────────────────────────────────────────────────────
+
+const LOCALES: { value: Locale; label: string }[] = [
+  { value: 'en', label: 'EN' },
+  { value: 'ro', label: 'RO' },
+];
+
+export function LanguageSwitcher() {
+  const { locale, setLocale } = useTranslation();
+  return (
+    <div style={{ display: 'flex', gap: 4 }}>
+      {LOCALES.map(({ value, label }) => (
+        <button
+          key={value}
+          onClick={() => setLocale(value)}
+          style={{
+            ...ghostBtn,
+            fontWeight: locale === value ? 700 : 400,
+            color: locale === value ? 'var(--text)' : 'var(--text-muted)',
+            borderColor: locale === value ? 'var(--accent)' : 'var(--border)',
+            padding: '4px 9px',
+            fontSize: 12,
+          }}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── Shell ─────────────────────────────────────────────────────────────────────
 
 export function Shell({ user, children }: { user: CurrentUser; children: React.ReactNode }) {
+  const { t } = useTranslation();
   const displayName = user.name ?? user.userId.slice(0, 8) + '…';
   return (
     <div
@@ -59,6 +92,7 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
           ✦ OurSpace
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <LanguageSwitcher />
           <span
             style={{
               fontSize: 13,
@@ -72,7 +106,7 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
             {displayName}
           </span>
           <button onClick={() => void signOut()} style={ghostBtn}>
-            Sign out
+            {t.shell.signOut}
           </button>
         </div>
       </header>

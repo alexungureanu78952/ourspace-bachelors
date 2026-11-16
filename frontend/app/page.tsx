@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMe } from '../lib/api';
-import { Spinner, centered, accentBtn } from '../components/shared';
+import { Spinner, centered, accentBtn, LanguageSwitcher } from '../components/shared';
+import { useTranslation } from '../lib/i18n';
 
 export default function Home() {
   const router = useRouter();
@@ -23,8 +24,14 @@ export default function Home() {
 }
 
 function Landing() {
+  const { t } = useTranslation();
+  const l = t.landing;
+
   return (
     <div style={{ ...centered, flexDirection: 'column', textAlign: 'center', padding: '0 20px' }}>
+      <div style={{ position: 'absolute', top: 16, right: 20 }}>
+        <LanguageSwitcher />
+      </div>
       <p
         style={{
           fontSize: 12,
@@ -35,7 +42,7 @@ function Landing() {
           marginBottom: 20,
         }}
       >
-        ✦ OurSpace
+        {l.eyebrow}
       </p>
       <h1
         style={{
@@ -46,9 +53,9 @@ function Landing() {
           maxWidth: 460,
         }}
       >
-        Your space.
+        {l.headlineL1}
         <br />
-        Your story.
+        {l.headlineL2}
       </h1>
       <p
         style={{
@@ -59,14 +66,12 @@ function Landing() {
           lineHeight: 1.6,
         }}
       >
-        A place to share who you are. Create your profile once, own it forever.
+        {l.description}
       </p>
       <a href="/bff/login?returnUrl=/" style={accentBtn}>
-        Sign in
+        {l.signIn}
       </a>
-      <p style={{ marginTop: 16, fontSize: 13, color: 'var(--text-muted)' }}>
-        New here? Create an account from the sign-in page.
-      </p>
+      <p style={{ marginTop: 16, fontSize: 13, color: 'var(--text-muted)' }}>{l.newHere}</p>
     </div>
   );
 }

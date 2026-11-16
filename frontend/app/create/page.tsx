@@ -12,6 +12,7 @@ import {
   input,
   label,
 } from '../../components/shared';
+import { useTranslation } from '../../lib/i18n';
 
 export default function CreatePage() {
   const auth = useAuth();
@@ -44,6 +45,8 @@ export default function CreatePage() {
 }
 
 function CreateForm({ onCreated }: { onCreated: () => void }) {
+  const { t } = useTranslation();
+  const c = t.create;
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [error, setError] = useState('');
@@ -52,7 +55,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!displayName.trim()) {
-      setError('Display name is required.');
+      setError(c.displayNameRequired);
       return;
     }
     setLoading(true);
@@ -61,7 +64,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       await createProfile(displayName.trim(), bio);
       onCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(err instanceof Error ? err.message : c.fallbackError);
     } finally {
       setLoading(false);
     }
@@ -69,9 +72,9 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
   return (
     <div>
-      <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Create your profile</h2>
+      <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8 }}>{c.title}</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 36, lineHeight: 1.5 }}>
-        You get one profile per account — make it yours.
+        {c.subtitle}
       </p>
 
       {error && <ErrorBanner message={error} />}
@@ -82,7 +85,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       >
         <div>
           <label htmlFor="create-display-name" style={label}>
-            Display name
+            {c.displayName}
           </label>
           <input
             id="create-display-name"
@@ -90,7 +93,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={200}
-            placeholder="How should we call you?"
+            placeholder={c.displayNamePlaceholder}
             style={input}
             required
           />
@@ -98,7 +101,8 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
         <div>
           <label htmlFor="create-bio" style={label}>
-            Bio <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>— optional</span>
+            {c.bio}{' '}
+            <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>{c.bioOptional}</span>
           </label>
           <textarea
             id="create-bio"
@@ -106,7 +110,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             onChange={(e) => setBio(e.target.value)}
             maxLength={500}
             rows={5}
-            placeholder="Tell people a bit about yourself…"
+            placeholder={c.bioPlaceholder}
             style={{ ...input, resize: 'vertical', minHeight: 110 }}
           />
           <div
@@ -126,7 +130,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             alignSelf: 'flex-start',
           }}
         >
-          {loading ? 'Creating…' : 'Create profile'}
+          {loading ? c.submitting : c.submit}
         </button>
       </form>
     </div>

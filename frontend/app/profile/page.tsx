@@ -4,18 +4,21 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMyProfile, type Profile } from '../../lib/api';
 import { useAuth, Shell, Spinner, ghostBtn } from '../../components/shared';
+import { useTranslation, dateLocaleMap } from '../../lib/i18n';
 
 export default function ProfilePage() {
   const auth = useAuth();
   const router = useRouter();
+  const { t, locale } = useTranslation();
+  const p = t.profile;
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
 
   useEffect(() => {
     if (auth.kind !== 'ready') return;
     getMyProfile()
-      .then((p) => {
-        setProfile(p);
-        if (!p) router.replace('/create');
+      .then((prof) => {
+        setProfile(prof);
+        if (!prof) router.replace('/create');
       })
       .catch(() => {
         setProfile(null);
@@ -28,7 +31,7 @@ export default function ProfilePage() {
   if (profile === undefined) return <Spinner />;
   if (profile === null) return null;
 
-  const createdAt = new Date(profile.createdAt).toLocaleDateString('en-US', {
+  const createdAt = new Date(profile.createdAt).toLocaleDateString(dateLocaleMap[locale], {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -48,13 +51,13 @@ export default function ProfilePage() {
           }}
         >
           <div>
-            <h2 style={{ fontSize: 26, fontWeight: 800 }}>Your profile</h2>
+            <h2 style={{ fontSize: 26, fontWeight: 800 }}>{p.title}</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
-              Created {createdAt}
+              {p.created} {createdAt}
             </p>
           </div>
           <button onClick={() => router.push('/edit')} style={ghostBtn}>
-            Edit
+            {p.edit}
           </button>
         </div>
 
@@ -70,7 +73,7 @@ export default function ProfilePage() {
           <iframe
             src={`/bff/profiles/${profile.id}/view`}
             sandbox="allow-scripts"
-            title="Profile preview"
+            title={p.previewTitle}
             style={{ width: '100%', height: 440, border: 'none', display: 'block' }}
           />
         </div>
@@ -86,8 +89,8 @@ export default function ProfilePage() {
             gap: 16,
           }}
         >
-          <Field label="Display name" value={profile.displayName} large />
-          {profile.bio && <Field label="Bio" value={profile.bio} />}
+          <Field label={p.displayName} value={profile.displayName} large />
+          {profile.bio && <Field label={p.bio} value={profile.bio} />}
         </div>
       </div>
     </Shell>

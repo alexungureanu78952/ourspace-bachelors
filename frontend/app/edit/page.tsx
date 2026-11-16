@@ -13,6 +13,7 @@ import {
   input,
   label,
 } from '../../components/shared';
+import { useTranslation } from '../../lib/i18n';
 
 export default function EditPage() {
   const auth = useAuth();
@@ -57,15 +58,17 @@ function EditForm({
   onSaved: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
+  const e = t.edit;
   const [displayName, setDisplayName] = useState(profile.displayName);
   const [bio, setBio] = useState(profile.bio);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(ev: React.FormEvent) {
+    ev.preventDefault();
     if (!displayName.trim()) {
-      setError('Display name is required.');
+      setError(e.displayNameRequired);
       return;
     }
     setLoading(true);
@@ -74,7 +77,7 @@ function EditForm({
       await updateProfile(displayName.trim(), bio);
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(err instanceof Error ? err.message : e.fallbackError);
     } finally {
       setLoading(false);
     }
@@ -82,26 +85,26 @@ function EditForm({
 
   return (
     <div>
-      <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Edit your profile</h2>
+      <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8 }}>{e.title}</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 36, lineHeight: 1.5 }}>
-        Changes take effect immediately.
+        {e.subtitle}
       </p>
 
       {error && <ErrorBanner message={error} />}
 
       <form
-        onSubmit={(e) => void handleSubmit(e)}
+        onSubmit={(ev) => void handleSubmit(ev)}
         style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
       >
         <div>
           <label htmlFor="edit-display-name" style={label}>
-            Display name
+            {e.displayName}
           </label>
           <input
             id="edit-display-name"
             type="text"
             value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
+            onChange={(ev) => setDisplayName(ev.target.value)}
             maxLength={200}
             style={input}
             required
@@ -110,12 +113,13 @@ function EditForm({
 
         <div>
           <label htmlFor="edit-bio" style={label}>
-            Bio <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>— optional</span>
+            {e.bio}{' '}
+            <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>{e.bioOptional}</span>
           </label>
           <textarea
             id="edit-bio"
             value={bio}
-            onChange={(e) => setBio(e.target.value)}
+            onChange={(ev) => setBio(ev.target.value)}
             maxLength={500}
             rows={5}
             style={{ ...input, resize: 'vertical', minHeight: 110 }}
@@ -137,10 +141,10 @@ function EditForm({
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
-            {loading ? 'Saving…' : 'Save changes'}
+            {loading ? e.submitting : e.submit}
           </button>
           <button type="button" onClick={onCancel} style={ghostBtn} disabled={loading}>
-            Cancel
+            {e.cancel}
           </button>
         </div>
       </form>

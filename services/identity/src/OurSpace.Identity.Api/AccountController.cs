@@ -101,7 +101,7 @@ public sealed class AccountController(
         var account = ModelState.IsValid ? await users.FindByIdAsync(input.UserId) : null;
         var success = account is not null && !account.EmailConfirmed && (await users.ConfirmEmailAsync(account, input.Token)).Succeeded;
         return InfoPage("Email confirmed",
-            message: success ? "Your email has been confirmed. Sign in with your new credentials." : "This confirmation link is invalid or has already been used.",
+            message: success ? "Email confirmed. You can now sign in with your new credentials." : "This confirmation link is invalid or has already been used.",
             isError: !success,
             linksHtml: $"<a href=\"{BffLogin}\">Go to sign in</a>");
     }

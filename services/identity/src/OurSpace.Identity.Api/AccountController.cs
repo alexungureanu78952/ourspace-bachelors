@@ -50,30 +50,31 @@ public sealed class AccountController(
     IOptions<IdentityProtocolSettings> settings,
     IOpenIddictAuthorizationManager authorizations) : Controller
 {
-    private const string Sent = "Check your inbox — if the account is eligible an email is on its way.";
-
     [HttpGet("register")]
-    public IActionResult Register() =>
-        Page("Create account", [("Email", "email", ""), ("Password", "password", "")],
-            sub: "Pick an email and a password of 12–128 characters.",
-            linksHtml: "Already have an account? <a href=\"/account/login\">Sign in</a>");
+    public IActionResult Register([FromQuery] string? locale = null)
+    {
+        var s = AccountLocale.For(locale ?? "en");
+        return Page(s.CreateAccount, [("Email", "email", ""), ("Password", "password", "")],
+            sub: s.CreateAccountSub,
+            linksHtml: $"{s.AlreadyHaveAccount} <a href=\"/account/login{LocaleQuery(locale)}\">{s.SignInLink}</a>");
+    }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromForm] RegisterInput input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register([FromForm] RegisterInput input, [FromQuery] string? locale, CancellationToken cancellationToken)
     {
+        var s = AccountLocale.For(locale ?? "en");
+        var loginLinks = $"{s.AlreadyHaveAccount} <a href=\"/account/login{LocaleQuery(locale)}\">{s.SignInLink}</a>";
         if (!ModelState.IsValid)
-            return Page("Create account", [("Email", "email", ""), ("Password", "password", "")],
-                message: "Enter a valid email and a password of 12–128 characters.", isError: true,
-                linksHtml: "Already have an account? <a href=\"/account/login\">Sign in</a>");
+            return Page(s.CreateAccount, [("Email", "email", ""), ("Password", "password", "")],
+                message: s.CreateAccountInvalid, isError: true, linksHtml: loginLinks);
 
         var address = input.Email.Trim();
         var candidate = new IdentityUserAccount { Id = Guid.NewGuid(), UserName = address, Email = address };
         foreach (var validator in users.PasswordValidators)
         {
             if (!(await validator.ValidateAsync(users, candidate, input.Password)).Succeeded)
-                return Page("Create account", [("Email", "email", ""), ("Password", "password", "")],
-                    message: "Use 12–128 characters with upper/lowercase letters, a number and a symbol.", isError: true,
-                    linksHtml: "Already have an account? <a href=\"/account/login\">Sign in</a>");
+                return Page(s.CreateAccount, [("Email", "email", ""), ("Password", "password", "")],
+                    message: s.CreateAccountWeakPassword, isError: true, linksHtml: loginLinks);
         }
 
         var account = await users.FindByEmailAsync(address);
@@ -85,39 +86,47 @@ public sealed class AccountController(
                 Link("/account/confirm", account.Id, token), cancellationToken);
         }
 
-        return InfoPage("Check your email",
-            message: Sent,
-            linksHtml: $"Back to <a href=\"{BffLogin}\">sign in</a>");
+        return InfoPage(s.CheckEmail,
+            message: s.CheckEmailMessage,
+            linksHtml: $"{s.BackToSignIn} <a href=\"{BffLogin}\">{s.SignInLink}</a>");
     }
 
     [HttpGet("confirm")]
-    public IActionResult Confirm([FromQuery] string userId, [FromQuery] string token) =>
-        Page("Confirm email", [("UserId", "hidden", userId), ("Token", "hidden", token)],
-            sub: "Click Continue to confirm your email address.");
+    public IActionResult Confirm([FromQuery] string userId, [FromQuery] string token, [FromQuery] string? locale = null)
+    {
+        var s = AccountLocale.For(locale ?? "en");
+        return Page(s.ConfirmEmail, [("UserId", "hidden", userId), ("Token", "hidden", token)],
+            sub: s.ConfirmEmailSub);
+    }
 
     [HttpPost("confirm")]
-    public async Task<IActionResult> Confirm([FromForm] TokenInput input)
+    public async Task<IActionResult> Confirm([FromForm] TokenInput input, [FromQuery] string? locale = null)
     {
+        var s = AccountLocale.For(locale ?? "en");
         var account = ModelState.IsValid ? await users.FindByIdAsync(input.UserId) : null;
         var success = account is not null && !account.EmailConfirmed && (await users.ConfirmEmailAsync(account, input.Token)).Succeeded;
-        return InfoPage("Email confirmed",
-            message: success ? "Email confirmed. You can now sign in with your new credentials." : "This confirmation link is invalid or has already been used.",
+        return InfoPage(s.EmailConfirmed,
+            message: success ? s.EmailConfirmedMessage : s.EmailConfirmedError,
             isError: !success,
-            linksHtml: $"<a href=\"{BffLogin}\">Go to sign in</a>");
+            linksHtml: $"<a href=\"{BffLogin}\">{s.SignIn}</a>");
     }
 
     [HttpGet("login")]
-    public IActionResult Login([FromQuery] string returnUrl = "/")
+    public IActionResult Login([FromQuery] string returnUrl = "/", [FromQuery] string? locale = null)
     {
         if (!Url.IsLocalUrl(returnUrl)) return BadRequest();
-        return Page("Sign in", [("Email", "email", ""), ("Password", "password", ""), ("ReturnUrl", "hidden", returnUrl)],
-            linksHtml: "No account yet? <a href=\"/account/register\">Create one</a><br>Forgot your password? <a href=\"/account/forgot\">Reset it</a>");
+        locale ??= ExtractUiLocales(returnUrl);
+        var s = AccountLocale.For(locale ?? "en");
+        return Page(s.SignIn, [("Email", "email", ""), ("Password", "password", ""), ("ReturnUrl", "hidden", returnUrl)],
+            linksHtml: $"{s.NoAccount} <a href=\"/account/register{LocaleQuery(locale)}\">{s.CreateLink}</a><br>{s.ForgotPassword} <a href=\"/account/forgot{LocaleQuery(locale)}\">{s.ResetLink}</a>");
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromForm] LoginInput input)
+    public async Task<IActionResult> Login([FromForm] LoginInput input, [FromQuery] string? locale = null)
     {
         if (!Url.IsLocalUrl(input.ReturnUrl)) return BadRequest();
+        locale ??= ExtractUiLocales(input.ReturnUrl);
+        var s = AccountLocale.For(locale ?? "en");
         var account = ModelState.IsValid ? await users.FindByEmailAsync(input.Email.Trim()) : null;
         if (account is not null && (await signIn.PasswordSignInAsync(account, input.Password, false, true)).Succeeded)
         {
@@ -128,20 +137,24 @@ public sealed class AccountController(
             return LocalRedirect(destination);
         }
 
-        return Page("Sign in", [("Email", "email", input.Email), ("Password", "password", ""), ("ReturnUrl", "hidden", input.ReturnUrl)],
-            message: "Sign-in failed. Check your credentials or confirm your email first.", isError: true,
-            linksHtml: "No account yet? <a href=\"/account/register\">Create one</a><br>Forgot your password? <a href=\"/account/forgot\">Reset it</a>");
+        return Page(s.SignIn, [("Email", "email", input.Email), ("Password", "password", ""), ("ReturnUrl", "hidden", input.ReturnUrl)],
+            message: s.SignInFailed, isError: true,
+            linksHtml: $"{s.NoAccount} <a href=\"/account/register{LocaleQuery(locale)}\">{s.CreateLink}</a><br>{s.ForgotPassword} <a href=\"/account/forgot{LocaleQuery(locale)}\">{s.ResetLink}</a>");
     }
 
     [HttpGet("forgot")]
-    public IActionResult Forgot() =>
-        Page("Reset password", [("Email", "email", "")],
-            sub: "Enter your email and we'll send a reset link.",
-            linksHtml: "Remembered it? <a href=\"/account/login\">Sign in</a>");
+    public IActionResult Forgot([FromQuery] string? locale = null)
+    {
+        var s = AccountLocale.For(locale ?? "en");
+        return Page(s.ResetPassword, [("Email", "email", "")],
+            sub: s.ResetPasswordSub,
+            linksHtml: $"{s.Remembered} <a href=\"/account/login{LocaleQuery(locale)}\">{s.SignInLink}</a>");
+    }
 
     [HttpPost("forgot")]
-    public async Task<IActionResult> Forgot([FromForm] RecoveryInput input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Forgot([FromForm] RecoveryInput input, [FromQuery] string? locale, CancellationToken cancellationToken)
     {
+        var s = AccountLocale.For(locale ?? "en");
         var account = ModelState.IsValid ? await users.FindByEmailAsync(input.Email.Trim()) : null;
         if (account is { EmailConfirmed: true })
         {
@@ -149,29 +162,44 @@ public sealed class AccountController(
                 Link("/account/reset", account.Id, await users.GeneratePasswordResetTokenAsync(account)), cancellationToken);
         }
 
-        return InfoPage("Check your email",
-            message: Sent,
-            linksHtml: $"Back to <a href=\"{BffLogin}\">sign in</a>");
+        return InfoPage(s.CheckEmail,
+            message: s.CheckEmailMessage,
+            linksHtml: $"{s.BackToSignIn} <a href=\"{BffLogin}\">{s.SignInLink}</a>");
     }
 
     [HttpGet("reset")]
-    public IActionResult Reset([FromQuery] string userId, [FromQuery] string token) =>
-        Page("Choose a new password", [("UserId", "hidden", userId), ("Token", "hidden", token), ("Password", "password", "")],
-            sub: "Pick a new password of 12–128 characters.");
+    public IActionResult Reset([FromQuery] string userId, [FromQuery] string token, [FromQuery] string? locale = null)
+    {
+        var s = AccountLocale.For(locale ?? "en");
+        return Page(s.ChooseNewPassword, [("UserId", "hidden", userId), ("Token", "hidden", token), ("Password", "password", "")],
+            sub: s.ChooseNewPasswordSub);
+    }
 
     [HttpPost("reset")]
-    public async Task<IActionResult> Reset([FromForm] TokenInput input)
+    public async Task<IActionResult> Reset([FromForm] TokenInput input, [FromQuery] string? locale = null)
     {
+        var s = AccountLocale.For(locale ?? "en");
         var account = ModelState.IsValid && input.Password is { Length: >= 12 and <= 128 } ? await users.FindByIdAsync(input.UserId) : null;
         var success = account is not null && account.EmailConfirmed && (await users.ResetPasswordAsync(account, input.Token, input.Password!)).Succeeded;
         if (success) await authorizations.RevokeBySubjectAsync(account!.Id.ToString());
-        return InfoPage("Password reset",
-            message: success ? "Password changed. You can now sign in." : "This reset request is invalid.",
+        return InfoPage(s.PasswordReset,
+            message: success ? s.PasswordChanged : s.PasswordResetError,
             isError: !success,
-            linksHtml: $"<a href=\"{BffLogin}\">Sign in</a>");
+            linksHtml: $"<a href=\"{BffLogin}\">{s.SignInLink}</a>");
     }
 
     private string BffLogin => settings.Value.BffOrigin + "/bff/login";
+
+    // Extracts ui_locales from a returnUrl like /connect/authorize?...&ui_locales=ro...
+    private static string? ExtractUiLocales(string? returnUrl)
+    {
+        if (string.IsNullOrEmpty(returnUrl) || !returnUrl.Contains('?')) return null;
+        var inner = QueryHelpers.ParseQuery(returnUrl[(returnUrl.IndexOf('?'))..]);
+        return inner.TryGetValue("ui_locales", out var v) ? v.ToString().Split(' ')[0] : null;
+    }
+
+    private static string LocaleQuery(string? locale) =>
+        string.IsNullOrEmpty(locale) || locale == "en" ? string.Empty : "?locale=" + locale;
 
     private string Link(string path, Guid userId, string token) =>
         QueryHelpers.AddQueryString(settings.Value.Issuer.TrimEnd('/') + path,

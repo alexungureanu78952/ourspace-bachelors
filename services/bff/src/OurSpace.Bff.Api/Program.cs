@@ -110,8 +110,13 @@ app.UseAntiforgery();
 app.MapGet("/health/ready", async (SessionDbContext database, CancellationToken cancellationToken) =>
     await database.Database.CanConnectAsync(cancellationToken) ? Results.Ok(new { status = "ready" }) : Results.StatusCode(503));
 app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));
-app.MapGet("/bff/login", (string? returnUrl) =>
-    Results.Challenge(new AuthenticationProperties { RedirectUri = LocalPath(returnUrl) ? returnUrl : "/" }, [OpenIdConnectDefaults.AuthenticationScheme]));
+app.MapGet("/bff/login", (string? returnUrl, HttpContext context) =>
+{
+    var props = new AuthenticationProperties { RedirectUri = LocalPath(returnUrl) ? returnUrl : "/" };
+    if (context.Request.Cookies.TryGetValue("locale", out var locale) && locale == "ro")
+        props.Parameters["ui_locales"] = "ro";
+    return Results.Challenge(props, [OpenIdConnectDefaults.AuthenticationScheme]);
+});
 var api = app.MapGroup("/bff").RequireAuthorization();
 api.AddEndpointFilter(async (context, next) =>
 {

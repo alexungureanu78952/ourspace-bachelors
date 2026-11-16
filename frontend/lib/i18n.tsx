@@ -175,6 +175,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore
     }
+    // Plain cookie so the BFF can read it on /bff/login and forward locale
+    // to the Identity service via the ui_locales OIDC parameter.
+    try {
+      document.cookie = `locale=${next}; Path=/; SameSite=Lax; Secure`;
+    } catch {
+      // ignore
+    }
   }
 
   return (

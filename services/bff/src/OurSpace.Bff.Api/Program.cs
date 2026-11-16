@@ -27,7 +27,6 @@ builder.Services.AddDbContextFactory<SessionDbContext>((services, options) =>
 });
 builder.Services.AddSingleton<PostgresTicketStore>();
 builder.Services.AddSingleton<ITicketStore>(services => services.GetRequiredService<PostgresTicketStore>());
-builder.Services.AddSingleton<ProfileArtifactService>();
 builder.Services.AddScoped<BackendTokens>();
 builder.Services.AddScoped<ProfilesBackend>();
 builder.Services.AddHostedService<SessionMaintenance>();
@@ -131,7 +130,6 @@ api.MapGet("/me", (HttpContext context) => Results.Ok(new
 api.MapGet("/csrf", (HttpContext context, IAntiforgery antiforgery) => Results.Ok(new { token = antiforgery.GetAndStoreTokens(context).RequestToken }));
 api.MapPost("/logout", () => Results.SignOut(new AuthenticationProperties { RedirectUri = "/" },
     [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]));
-api.MapPost("/demo/profiles", DemoEndpoints.CreateAsync);
 api.MapPost("/profiles", async (CreateProfileRequest input, HttpContext context, ProfilesBackend profiles) =>
     await Forward(await profiles.CreateAsync(context, input), context.RequestAborted));
 api.MapGet("/profiles/me", async (HttpContext context, ProfilesBackend profiles) =>
@@ -140,24 +138,6 @@ api.MapPut("/profiles/me", async (UpdateProfileRequest input, HttpContext contex
     await Forward(await profiles.UpdateMyAsync(context, input), context.RequestAborted));
 api.MapGet("/profiles/{id:guid}", async (Guid id, HttpContext context, ProfilesBackend profiles) =>
     await Forward(await profiles.GetAsync(context, id), context.RequestAborted));
-api.MapGet("/profiles/{id:guid}/view", async (Guid id, HttpContext context, ProfilesBackend profiles, ProfileArtifactService artifactService) =>
-{
-    var artifact = artifactService.Artifact;
-    if (artifact is null) return Results.NotFound();
-    using var response = await profiles.GetAsync(context, id);
-    if (response is null) return Results.Unauthorized();
-    if (!response.IsSuccessStatusCode) return Results.StatusCode((int)response.StatusCode);
-    var profile = await response.Content.ReadFromJsonAsync<DemoProfile>(context.RequestAborted);
-    if (profile is null) return Results.StatusCode(502);
-    var frameOrigin = $"{context.Request.Scheme}://{context.Request.Host}";
-    var (html, csp) = artifact.Build(profile.DisplayName, profile.Bio, frameOrigin);
-    context.Response.Headers.CacheControl = "no-store";
-    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    context.Response.Headers["Referrer-Policy"] = "no-referrer";
-    context.Response.Headers.ContentSecurityPolicy = csp;
-    return Results.Content(html, "text/html; charset=utf-8");
-});
-app.MapGet("/bff/demo", DemoEndpoints.LoadAsync).AllowAnonymous();
 var webRoot = app.Environment.WebRootPath ?? string.Empty;
 app.MapFallback(async (HttpContext ctx) =>
 {

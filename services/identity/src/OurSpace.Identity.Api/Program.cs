@@ -109,7 +109,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 app.MapControllers();
-app.MapGet("/", () => Results.Content("<!doctype html><html lang=\"en\"><title>OurSpace accounts</title><main><h1>OurSpace accounts</h1><a href=\"/account/register\">Create account</a><br><a href=\"/account/login\">Sign in</a><br><a href=\"/account/forgot\">Reset password</a></main></html>", "text/html"));
+app.MapGet("/", (Microsoft.Extensions.Options.IOptions<IdentityProtocolSettings> s) =>
+    Results.Redirect(s.Value.BffOrigin, permanent: false));
 app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));
 app.MapGet("/health/ready", async (IdentityStoreContext database, CancellationToken cancellationToken) =>
     await database.Database.CanConnectAsync(cancellationToken) ? Results.Ok(new { status = "ready" }) : Results.StatusCode(503));

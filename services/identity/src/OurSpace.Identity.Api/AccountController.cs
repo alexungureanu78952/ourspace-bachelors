@@ -85,9 +85,9 @@ public sealed class AccountController(
                 Link("/account/confirm", account.Id, token), cancellationToken);
         }
 
-        return Page("Check your email", [],
+        return InfoPage("Check your email",
             message: Sent,
-            linksHtml: "Back to <a href=\"/account/login\">sign in</a>");
+            linksHtml: $"Back to <a href=\"{BffLogin}\">sign in</a>");
     }
 
     [HttpGet("confirm")]
@@ -100,10 +100,10 @@ public sealed class AccountController(
     {
         var account = ModelState.IsValid ? await users.FindByIdAsync(input.UserId) : null;
         var success = account is not null && !account.EmailConfirmed && (await users.ConfirmEmailAsync(account, input.Token)).Succeeded;
-        return Page("Email confirmed", [],
-            message: success ? "Email confirmed. You can now sign in." : "This confirmation link is invalid or has already been used.",
+        return InfoPage("Email confirmed",
+            message: success ? "Your email has been confirmed. Sign in with your new credentials." : "This confirmation link is invalid or has already been used.",
             isError: !success,
-            linksHtml: "<a href=\"/account/login\">Sign in</a>");
+            linksHtml: $"<a href=\"{BffLogin}\">Go to sign in</a>");
     }
 
     [HttpGet("login")]
@@ -149,9 +149,9 @@ public sealed class AccountController(
                 Link("/account/reset", account.Id, await users.GeneratePasswordResetTokenAsync(account)), cancellationToken);
         }
 
-        return Page("Check your email", [],
+        return InfoPage("Check your email",
             message: Sent,
-            linksHtml: "Back to <a href=\"/account/login\">sign in</a>");
+            linksHtml: $"Back to <a href=\"{BffLogin}\">sign in</a>");
     }
 
     [HttpGet("reset")]
@@ -165,11 +165,13 @@ public sealed class AccountController(
         var account = ModelState.IsValid && input.Password is { Length: >= 12 and <= 128 } ? await users.FindByIdAsync(input.UserId) : null;
         var success = account is not null && account.EmailConfirmed && (await users.ResetPasswordAsync(account, input.Token, input.Password!)).Succeeded;
         if (success) await authorizations.RevokeBySubjectAsync(account!.Id.ToString());
-        return Page("Password reset", [],
+        return InfoPage("Password reset",
             message: success ? "Password changed. You can now sign in." : "This reset request is invalid.",
             isError: !success,
-            linksHtml: "<a href=\"/account/login\">Sign in</a>");
+            linksHtml: $"<a href=\"{BffLogin}\">Sign in</a>");
     }
+
+    private string BffLogin => settings.Value.BffOrigin + "/bff/login";
 
     private string Link(string path, Guid userId, string token) =>
         QueryHelpers.AddQueryString(settings.Value.Issuer.TrimEnd('/') + path,
@@ -178,4 +180,8 @@ public sealed class AccountController(
     private ContentResult Page(string title, IEnumerable<(string Name, string Type, string Value)> fields,
         string? message = null, bool isError = false, string? sub = null, string? linksHtml = null) =>
         Content(AccountPage.Form(HttpContext, antiforgery, title, fields, message, isError, sub, linksHtml), "text/html; charset=utf-8");
+
+    private ContentResult InfoPage(string title, string? message = null, bool isError = false,
+        string? sub = null, string? linksHtml = null) =>
+        Content(AccountPage.Info(title, message, isError, sub, linksHtml), "text/html; charset=utf-8");
 }
